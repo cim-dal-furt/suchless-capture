@@ -162,46 +162,52 @@
 
     // 2. ODESLÁNÍ AUDIA (.m4a)
     async function toggleAudio() {
-      const btn = document.getElementById('recBtn');
-      if (!isRec) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-          
-          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-          mediaRecorder.onstop = () => {
-            const blob = new Blob(audioChunks, { type: 'audio/m4a' });
-            const fileName = `audio_${getFormattedDateTime()}.m4a`;
-            postData(blob, fileName, 'audio/m4a');
-          };
+  const btn = document.getElementById('recBtn');
+  if (!isRec) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Detekce nativního formátu Androidu
+      const options = MediaRecorder.isTypeSupported('audio/webm') 
+        ? { mimeType: 'audio/webm' } 
+        : {};
+        
+      mediaRecorder = new MediaRecorder(stream, options);
+      audioChunks = [];
+      
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const fileName = `audio_${getFormattedDateTime()}.webm`;
+        postData(blob, fileName, 'audio/webm');
+      };
 
-          mediaRecorder.start();
-          isRec = true;
-          audioSeconds = 0;
-          btn.innerText = `⏹️ Stop (00:00)`;
-          btn.classList.add('rec');
-          setStatus("Nahrávám audio...");
+      mediaRecorder.start();
+      isRec = true;
+      audioSeconds = 0;
+      btn.innerText = `⏹️ Stop (00:00)`;
+      btn.classList.add('rec');
+      setStatus("Nahrávám audio...");
 
-          audioTimer = setInterval(() => {
-            audioSeconds++;
-            const formatted = formatTime(audioSeconds);
-            btn.innerText = `⏹️ Stop (${formatted})`;
-            setStatus(`Nahrávám... ${formatted}`);
-          }, 1000);
+      audioTimer = setInterval(() => {
+        audioSeconds++;
+        const formatted = formatTime(audioSeconds);
+        btn.innerText = `⏹️ Stop (${formatted})`;
+        setStatus(`Nahrávám... ${formatted}`);
+      }, 1000);
 
-        } catch (err) { 
-          setStatus("Chyba mikrofónu"); 
-        }
-      } else {
-        clearInterval(audioTimer);
-        mediaRecorder.stop();
-        isRec = false;
-        btn.innerText = "🎤 Audio";
-        btn.classList.remove('rec');
-        setStatus("Ukládám audio...");
-      }
+    } catch (err) { 
+      setStatus("Chyba mikrofónu"); 
     }
+  } else {
+    clearInterval(audioTimer);
+    mediaRecorder.stop();
+    isRec = false;
+    btn.innerText = "🎤 Audio";
+    btn.classList.remove('rec');
+    setStatus("Ukládám audio...");
+  }
+}
 
     // 3. ODESLÁNÍ FOTKY Z FOŤÁKU (.jpg)
     function sendCameraPhoto(f) {
