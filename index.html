@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <title>SUCHLESS Capture</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 10px; display: flex; flex-direction: column; gap: 8px; height: 100vh; overflow: hidden; }
+    .header { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+    textarea { width: 100%; height: 65px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; padding: 8px; font-size: 0.85rem; resize: none; outline: none; }
+    textarea:focus { border-color: #38bdf8; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .btn { display: flex; align-items: center; justify-content: center; padding: 10px; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: bold; color: white; cursor: pointer; }
+    .btn:active { opacity: 0.8; }
+    .btn-send { background: #10b981; grid-column: span 2; padding: 8px; }
+    .btn-audio { background: #ef4444; }
+    .btn-audio.rec { background: #dc2626; animation: pulse 1s infinite; }
+    .btn-cam { background: #0284c7; }
+    .btn-file { background: #d97706; grid-column: span 2; }
+    #status { text-align: center; font-size: 0.75rem; color: #38bdf8; min-height: 16px; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <span>SUCHLESS CAPTURE</span>
+    <span id="status">Připraven</span>
+  </div>
+
+  <textarea id="txt" placeholder="Napiš nebo vlož text..."></textarea>
+  <button class="btn btn-send" onclick="sendText()">✍️ Odeslat text</button>
+
+  <div class="grid">
+    <button id="recBtn" class="btn btn-audio" onclick="toggleAudio()">🎤 Audio</button>
+    <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Foťák</button>
+    <input type="file" id="cam" style="display:none" accept="image/*" capture="environment" onchange="sendFile(this.files[0])">
+    
+    <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Soubor</button>
+    <input type="file" id="file" style="display:none" onchange="sendFile(this.files[0])">
+  </div>
+
+  <script>
+    // DOPLŇ SVOJI URL Z KROKU 2 NÍŽE:
+    const GAS_API_URL = "VLOZ_SEM_SVOJI_URL_Z_KROKU_2";
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+
+    let mediaRecorder, audioChunks = [], isRec = false;
+    function setStatus(msg) { document.getElementById('status').innerText = msg; }
+
+    async function toggleAudio() {
+      const btn = document.getElementById('recBtn');
+      if (!isRec) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: 'audio/m4a' });
+            postData(blob, 'audio_' + Date.now() + '.m4a', 'audio/m4a');
+          };
+          mediaRecorder.start();
+          isRec = true;
+          btn.innerText = "⏹️ Stop";
+          btn.classList.add('rec');
+          setStatus("Nahrávám...");
+        } catch (err) { setStatus("Chyba mikrofónu"); }
+      } else {
+        mediaRecorder.stop();
+        isRec = false;
+        btn.innerText = "🎤 Audio";
+        btn.classList.remove('rec');
+        setStatus("Ukládám...");
+      }
+    }
+
+    function sendFile(f) {
+      if (!f) return;
+      setStatus("Ukládám soubor...");
+      postData(f, f.name, f.type || 'application/octet-stream');
+    }
+
+    function sendText() {
+      const val = document.getElementById('txt').value.trim();
+      if (!val) return;
+      setStatus("Ukládám text...");
+      const blob = new Blob([val], { type: 'text/plain' });
+      postData(blob, 'text_' + Date.now() + '.txt', 'text/plain');
+      document.getElementById('txt').value = '';
+    }
+
+    function postData(blob, fileName, mimeType) {
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        const base64 = reader.result.split(',')[1];
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ base64: base64, fileName: fileName, mimeType: mimeType })
+        })
+        .then(res => res.json())
+        .then(data => {
+          setStatus(data.message);
+          setTimeout(() => setStatus("Připraven"), 3000);
+        })
+        .catch(err => setStatus("Chyba odeslání"));
+      };
+      reader.readAsDataURL(blob);
+    }
+  </script>
+</body>
+</html>
