@@ -111,7 +111,7 @@
       <button id="recBtn" class="btn btn-audio" onclick="toggleAudio()">🎤 Audio</button>
       
       <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Foťák</button>
-      <input type="file" id="cam" style="display:none" accept="image/*" capture="environment" onchange="sendFile(this.files[0])">
+      <input type="file" id="cam" style="display:none" accept="image/*" capture="environment" onchange="sendCameraPhoto(this.files[0])">
       
       <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Přiložit soubor</button>
       <input type="file" id="file" style="display:none" onchange="sendFile(this.files[0])">
@@ -131,13 +131,36 @@
 
     function setStatus(msg) { document.getElementById('status').innerText = msg; }
 
-    // Doplňková funkce pro formátování času 00:00
     function formatTime(sec) {
       const m = Math.floor(sec / 60).toString().padStart(2, '0');
       const s = (sec % 60).toString().padStart(2, '0');
       return `${m}:${s}`;
     }
 
+    // Pomocná funkce pro časové razítko: DD_MM_RRRR_HHMMSS
+    function getFormattedDateTime() {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      return `${day}_${month}_${year}_${hours}${minutes}${seconds}`;
+    }
+
+    // 1. ODESLÁNÍ TEXTU (.md)
+    function sendText() {
+      const val = document.getElementById('txt').value.trim();
+      if (!val) return;
+      setStatus("Ukládám text...");
+      const blob = new Blob([val], { type: 'text/markdown' });
+      const fileName = `text_${getFormattedDateTime()}.md`;
+      postData(blob, fileName, 'text/markdown');
+      document.getElementById('txt').value = '';
+    }
+
+    // 2. ODESLÁNÍ AUDIA (.m4a)
     async function toggleAudio() {
       const btn = document.getElementById('recBtn');
       if (!isRec) {
@@ -149,13 +172,12 @@
           mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
           mediaRecorder.onstop = () => {
             const blob = new Blob(audioChunks, { type: 'audio/m4a' });
-            postData(blob, 'audio_' + Date.now() + '.m4a', 'audio/m4a');
+            const fileName = `audio_${getFormattedDateTime()}.m4a`;
+            postData(blob, fileName, 'audio/m4a');
           };
 
           mediaRecorder.start();
           isRec = true;
-          
-          // Spuštění časovače nahrávání
           audioSeconds = 0;
           btn.innerText = `⏹️ Stop (00:00)`;
           btn.classList.add('rec');
@@ -172,30 +194,30 @@
           setStatus("Chyba mikrofónu"); 
         }
       } else {
-        // Zastavení nahrávání a časovače
         clearInterval(audioTimer);
         mediaRecorder.stop();
         isRec = false;
-        
         btn.innerText = "🎤 Audio";
         btn.classList.remove('rec');
         setStatus("Ukládám audio...");
       }
     }
 
+    // 3. ODESLÁNÍ FOTKY Z FOŤÁKU (.jpg)
+    function sendCameraPhoto(f) {
+      if (!f) return;
+      setStatus("Ukládám fotku...");
+      const fileName = `foto_${getFormattedDateTime()}.jpg`;
+      postData(f, fileName, 'image/jpeg');
+    }
+
+    // 4. ODESLÁNÍ LIBOVOLNÉHO SOUBORU
     function sendFile(f) {
       if (!f) return;
       setStatus("Ukládám soubor...");
-      postData(f, f.name, f.type || 'application/octet-stream');
-    }
-
-    function sendText() {
-      const val = document.getElementById('txt').value.trim();
-      if (!val) return;
-      setStatus("Ukládám text...");
-      const blob = new Blob([val], { type: 'text/plain' });
-      postData(blob, 'text_' + Date.now() + '.txt', 'text/plain');
-      document.getElementById('txt').value = '';
+      const ext = f.name.includes('.') ? f.name.split('.').pop() : 'bin';
+      const fileName = `soubor_${getFormattedDateTime()}.${ext}`;
+      postData(f, fileName, f.type || 'application/octet-stream');
     }
 
     function postData(blob, fileName, mimeType) {
