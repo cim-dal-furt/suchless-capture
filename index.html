@@ -26,9 +26,9 @@
       cursor: pointer;
     }
 
-    /* Dolní černá skleněná karta */
+    /* Dolní skleněná karta */
     .glass-card {
-      background: rgba(18, 18, 18, 0.9);
+      background: rgba(18, 18, 18, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid rgba(255, 255, 255, 0.12);
@@ -127,7 +127,16 @@
     }
 
     let mediaRecorder, audioChunks = [], isRec = false;
+    let audioTimer = null, audioSeconds = 0;
+
     function setStatus(msg) { document.getElementById('status').innerText = msg; }
+
+    // Doplňková funkce pro formátování času 00:00
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
 
     async function toggleAudio() {
       const btn = document.getElementById('recBtn');
@@ -136,23 +145,41 @@
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           mediaRecorder = new MediaRecorder(stream);
           audioChunks = [];
+          
           mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
           mediaRecorder.onstop = () => {
             const blob = new Blob(audioChunks, { type: 'audio/m4a' });
             postData(blob, 'audio_' + Date.now() + '.m4a', 'audio/m4a');
           };
+
           mediaRecorder.start();
           isRec = true;
-          btn.innerText = "⏹️ Stop";
+          
+          // Spuštění časovače nahrávání
+          audioSeconds = 0;
+          btn.innerText = `⏹️ Stop (00:00)`;
           btn.classList.add('rec');
-          setStatus("Nahrávám...");
-        } catch (err) { setStatus("Chyba mikrofónu"); }
+          setStatus("Nahrávám audio...");
+
+          audioTimer = setInterval(() => {
+            audioSeconds++;
+            const formatted = formatTime(audioSeconds);
+            btn.innerText = `⏹️ Stop (${formatted})`;
+            setStatus(`Nahrávám... ${formatted}`);
+          }, 1000);
+
+        } catch (err) { 
+          setStatus("Chyba mikrofónu"); 
+        }
       } else {
+        // Zastavení nahrávání a časovače
+        clearInterval(audioTimer);
         mediaRecorder.stop();
         isRec = false;
+        
         btn.innerText = "🎤 Audio";
         btn.classList.remove('rec');
-        setStatus("Ukládám...");
+        setStatus("Ukládám audio...");
       }
     }
 
