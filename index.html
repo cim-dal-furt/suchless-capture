@@ -262,7 +262,7 @@
     function sendCameraPhoto(f) {
       if (!f) return;
       setStatus("Ukládám fotku...");
-      const fileName = `foto_${getFormattedDateTime()}.jpg`;
+      const fileName = fileObject.name; 
       postData(f, fileName, 'image/jpeg');
     }
 
