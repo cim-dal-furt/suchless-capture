@@ -103,15 +103,15 @@
     </div>
 
     <textarea id="txt" placeholder="Napiš nebo vlož text..."></textarea>
-    <button class="btn btn-send" onclick="sendText()">✍️ Odeslat text</button>
+    <button class="btn btn-send" onclick="sendText()">✍️ Odeslat textovou poznámku</button>
 
     <div class="grid">
       <button id="recBtn" class="btn btn-audio" onclick="toggleAudio()">🎤 Audio</button>
       
-      <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Foťák</button>
+      <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Fotoaparát</button>
       <input type="file" id="cam" style="display:none" accept="image/*" capture="environment" onchange="sendCameraPhoto(this.files[0])">
       
-      <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Přiložit soubor</button>
+      <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Soubor</button>
       <input type="file" id="file" style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,application/pdf,application/msword,text/plain" onchange="sendFile(this.files[0])">
     </div>
   </div>
@@ -184,7 +184,7 @@
           audioSeconds = 0;
           btn.innerText = `⏹️ Stop (00:00)`;
           btn.classList.add('rec');
-          setStatus("Nahrávám audio...");
+          setStatus("Nahrávám ...");
 
           audioTimer = setInterval(() => {
             audioSeconds++;
@@ -205,7 +205,7 @@
         
         btn.innerText = "🎤 Audio";
         btn.classList.remove('rec');
-        setStatus("Odesílám záznam...");
+        setStatus("Ukládám záznam...");
       }
     }
 
