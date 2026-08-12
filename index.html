@@ -7,16 +7,16 @@
   <title>SUCHLESS Capture</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #000000;
-      color: #f8fafc;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      overflow: hidden;
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      background: #000000; 
+      color: #f8fafc; 
+      height: 100dvh; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: flex-end; 
+      overflow: hidden; 
     }
 
     .close-overlay {
@@ -38,59 +38,57 @@
       box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.9);
     }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
+    .header { 
+      display: flex; 
+      justify-content: space-between; 
       align-items: center;
-      font-size: 0.8rem;
-      font-weight: 800;
-      color: #38bdf8;
+      font-size: 0.8rem; 
+      font-weight: 800; 
+      color: #38bdf8; 
       padding-bottom: 2px;
       letter-spacing: 0.5px;
     }
 
-    textarea {
-      width: 100%;
-      height: 65px;
-      background: rgba(9, 9, 11, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-      color: #ffffff;
-      padding: 10px;
-      font-size: 0.9rem;
-      resize: none;
-      outline: none;
+    textarea { 
+      width: 100%; 
+      height: 65px; 
+      background: rgba(9, 9, 11, 0.8); 
+      border: 1px solid rgba(255, 255, 255, 0.15); 
+      border-radius: 10px; 
+      color: #ffffff; 
+      padding: 10px; 
+      font-size: 0.9rem; 
+      resize: none; 
+      outline: none; 
     }
     textarea:focus { border-color: #38bdf8; }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+    .grid { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 8px; 
     }
-
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: bold;
-      color: #ffffff;
-      cursor: pointer;
+    
+    .btn { 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 12px; 
+      border: none; 
+      border-radius: 10px; 
+      font-size: 0.85rem; 
+      font-weight: bold; 
+      color: #ffffff; 
+      cursor: pointer; 
     }
     .btn:active { opacity: 0.8; transform: scale(0.98); }
-    .btn:disabled { opacity: 0.5; pointer-events: none; }
     .btn-send { background: #10b981; grid-column: span 2; }
     .btn-audio { background: #ef4444; }
     .btn-audio.rec { background: #dc2626; animation: pulse 1s infinite; }
     .btn-cam { background: #0284c7; }
     .btn-file { background: #d97706; grid-column: span 2; }
-
+    
     #status { text-align: center; font-size: 0.75rem; color: #38bdf8; }
-    #status.error { color: #f87171; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
   </style>
 </head>
@@ -100,21 +98,21 @@
 
   <div class="glass-card">
     <div class="header">
-      <span>CAPTURE</span>
+      <span>SUCHLESS CAPTURE</span>
       <span id="status">Připraven</span>
     </div>
 
     <textarea id="txt" placeholder="Napiš nebo vlož text..."></textarea>
-    <button id="sendBtn" class="btn btn-send" onclick="sendText()">✍️ Odeslat textovou poznámku</button>
+    <button class="btn btn-send" onclick="sendText()">✍️ Odeslat text</button>
 
     <div class="grid">
       <button id="recBtn" class="btn btn-audio" onclick="toggleAudio()">🎤 Audio</button>
-
-      <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Fotoaparát</button>
+      
+      <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Foťák</button>
       <input type="file" id="cam" style="display:none" accept="image/*" capture="environment" onchange="sendCameraPhoto(this.files[0])">
-
-      <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Soubor</button>
-      <input type="file" id="file" style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,application/pdf,application/msword,text/plain" onchange="sendFile(this.files[0])">
+      
+      <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Přiložit soubor</button>
+      <input type="file" id="file" style="display:none" onchange="sendFile(this.files[0])">
     </div>
   </div>
 
@@ -128,19 +126,9 @@
 
     let isRec = false;
     let audioTimer = null, audioSeconds = 0;
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let micStream = null;
+    let audioCtx = null, scriptNode = null, micStream = null, audioBuffers = [];
 
-    function setStatus(msg, isError) {
-      const el = document.getElementById('status');
-      el.innerText = msg;
-      el.classList.toggle('error', !!isError);
-    }
-
-    function setBusy(busy) {
-      document.getElementById('sendBtn').disabled = busy;
-    }
+    function setStatus(msg) { document.getElementById('status').innerText = msg; }
 
     function formatTime(sec) {
       const m = Math.floor(sec / 60).toString().padStart(2, '0');
@@ -159,178 +147,121 @@
       return `${day}_${month}_${year}_${hours}${minutes}${seconds}`;
     }
 
-    // ---------- CORS-SAFE PŘENOS: hidden form POST + JSONP status polling ----------
-
-    function generateRequestId() {
-      return Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
-    }
-
-    function ensureHiddenIframe() {
-      if (!document.getElementById('hidden_target_iframe')) {
-        const iframe = document.createElement('iframe');
-        iframe.name = 'hidden_target_iframe';
-        iframe.id = 'hidden_target_iframe';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-      }
-    }
-
-    function submitViaHiddenForm(fields) {
-      ensureHiddenIframe();
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = GAS_API_URL;
-      form.target = 'hidden_target_iframe';
-      form.style.display = 'none';
-
-      Object.keys(fields).forEach(function (key) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = fields[key];
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-      form.submit();
-      setTimeout(function () { form.remove(); }, 2000);
-    }
-
-    function pollStatus(requestId, attemptsLeft, onResult) {
-      if (attemptsLeft <= 0) {
-        onResult({ success: false, message: 'Časový limit vypršel – zkontroluj Drive, ale zkus to znovu.' });
-        return;
-      }
-
-      const callbackName = 'suchlessCb_' + requestId.replace(/[^a-zA-Z0-9]/g, '');
-      let scriptTag = null;
-
-      window[callbackName] = function (result) {
-        delete window[callbackName];
-        if (scriptTag && scriptTag.parentNode) scriptTag.remove();
-
-        if (result && result.pending) {
-          setTimeout(function () { pollStatus(requestId, attemptsLeft - 1, onResult); }, 600);
-        } else {
-          onResult(result);
-        }
-      };
-
-      scriptTag = document.createElement('script');
-      scriptTag.src = GAS_API_URL + '?action=status&requestId=' + encodeURIComponent(requestId) +
-        '&callback=' + callbackName + '&_=' + Date.now();
-      scriptTag.onerror = function () {
-        delete window[callbackName];
-        if (scriptTag.parentNode) scriptTag.remove();
-        setTimeout(function () { pollStatus(requestId, attemptsLeft - 1, onResult); }, 600);
-      };
-      document.body.appendChild(scriptTag);
-    }
-
-    function postData(blob, fileName, mimeType, onDone) {
-      const reader = new FileReader();
-      reader.onloadend = function () {
-        const base64 = reader.result.split(',')[1];
-        const requestId = generateRequestId();
-
-        setBusy(true);
-        setStatus("Odesílám...", false);
-
-        submitViaHiddenForm({
-          token: PWA_SECRET_TOKEN,
-          base64: base64,
-          fileName: fileName,
-          mimeType: mimeType,
-          requestId: requestId
-        });
-
-        // Malá prodleva než server stihne zapsat cache, pak pollujeme (max ~10x600ms = 6s)
-        setTimeout(function () {
-          pollStatus(requestId, 10, function (result) {
-            setBusy(false);
-            const ok = !!(result && result.success);
-            setStatus((result && result.message) || (ok ? "Uloženo" : "Chyba odeslání"), !ok);
-            onDone && onDone(ok);
-
-            if (ok) {
-              setTimeout(function () {
-                setStatus("Připraven", false);
-                window.close();
-              }, 1200);
-            }
-          });
-        }, 400);
-      };
-      reader.readAsDataURL(blob);
-    }
-
-    // ---------- ODESÍLACÍ AKCE ----------
-
-    // 1. ODESLÁNÍ TEXTU (.md) – textarea se maže AŽ PO potvrzeném úspěchu
+    // 1. ODESLÁNÍ TEXTU (.md)
     function sendText() {
       const val = document.getElementById('txt').value.trim();
       if (!val) return;
+      setStatus("Ukládám text...");
       const blob = new Blob([val], { type: 'text/markdown' });
       const fileName = `text_${getFormattedDateTime()}.md`;
-      postData(blob, fileName, 'text/markdown', function (success) {
-        if (success) {
-          document.getElementById('txt').value = '';
-        }
-      });
+      postData(blob, fileName, 'text/markdown');
+      document.getElementById('txt').value = '';
     }
 
-    // 2. NAHRÁVÁNÍ AUDIA (WebM)
+    // 2. NAHRÁVÁNÍ AUDIA (RIFF WAV 16-bit PCM)
     async function toggleAudio() {
       const btn = document.getElementById('recBtn');
       if (!isRec) {
         try {
           micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(micStream, { mimeType: 'audio/webm' });
-          audioChunks = [];
-
-          mediaRecorder.ondataavailable = e => {
-            if (e.data.size > 0) audioChunks.push(e.data);
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioCtx.createMediaStreamSource(micStream);
+          
+          scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+          audioBuffers = [];
+          
+          scriptNode.onaudioprocess = e => {
+            if (!isRec) return;
+            const input = e.inputBuffer.getChannelData(0);
+            audioBuffers.push(new Float32Array(input));
           };
 
-          mediaRecorder.onstop = () => {
-            const webmBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const fileName = `audio_${getFormattedDateTime()}.webm`;
-            postData(webmBlob, fileName, 'audio/webm');
-          };
+          source.connect(scriptNode);
+          scriptNode.connect(audioCtx.destination);
 
-          mediaRecorder.start();
           isRec = true;
           audioSeconds = 0;
           btn.innerText = `⏹️ Stop (00:00)`;
           btn.classList.add('rec');
-          setStatus("Nahrávám ...", false);
+          setStatus("Nahrávám audio (WAV)...");
 
           audioTimer = setInterval(() => {
             audioSeconds++;
             const formatted = formatTime(audioSeconds);
             btn.innerText = `⏹️ Stop (${formatted})`;
-            setStatus(`Nahrávám... ${formatted}`, false);
+            setStatus(`Nahrávám... ${formatted}`);
           }, 1000);
 
-        } catch (err) {
-          setStatus("Chyba mikrofonu", true);
+        } catch (err) { 
+          setStatus("Chyba mikrofonu"); 
         }
       } else {
         isRec = false;
         clearInterval(audioTimer);
-
-        mediaRecorder.stop();
+        
+        if (scriptNode) scriptNode.disconnect();
         if (micStream) micStream.getTracks().forEach(t => t.stop());
-
+        
         btn.innerText = "🎤 Audio";
         btn.classList.remove('rec');
-        setStatus("Ukládám záznam...", false);
+        setStatus("Generuji WAV...");
+
+        const sampleRate = audioCtx.sampleRate;
+        audioCtx.close();
+        
+        const wavBlob = exportWAV(audioBuffers, sampleRate);
+        const fileName = `audio_${getFormattedDateTime()}.wav`;
+        postData(wavBlob, fileName, 'audio/wav');
+      }
+    }
+
+    function exportWAV(buffers, sampleRate) {
+      let bufferLen = 0;
+      for (let i = 0; i < buffers.length; i++) bufferLen += buffers[i].length;
+      const samples = new Float32Array(bufferLen);
+      let offset = 0;
+      for (let i = 0; i < buffers.length; i++) {
+        samples.set(buffers[i], offset);
+        offset += buffers[i].length;
+      }
+
+      const buffer = new ArrayBuffer(44 + samples.length * 2);
+      const view = new DataView(buffer);
+
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + samples.length * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, samples.length * 2, true);
+
+      let index = 44;
+      for (let i = 0; i < samples.length; i++) {
+        let s = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(index, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        index += 2;
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    function writeString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
       }
     }
 
     // 3. ODESLÁNÍ FOTKY Z FOŤÁKU (.jpg)
     function sendCameraPhoto(f) {
       if (!f) return;
+      setStatus("Ukládám fotku...");
       const fileName = `foto_${getFormattedDateTime()}.jpg`;
       postData(f, fileName, 'image/jpeg');
     }
@@ -338,9 +269,36 @@
     // 4. ODESLÁNÍ LIBOVOLNÉHO SOUBORU
     function sendFile(f) {
       if (!f) return;
+      setStatus("Ukládám soubor...");
       const ext = f.name.includes('.') ? f.name.split('.').pop() : 'bin';
       const fileName = `soubor_${getFormattedDateTime()}.${ext}`;
       postData(f, fileName, f.type || 'application/octet-stream');
+    }
+
+    function postData(blob, fileName, mimeType) {
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        const base64 = reader.result.split(',')[1];
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ 
+            token: PWA_SECRET_TOKEN,
+            base64: base64, 
+            fileName: fileName, 
+            mimeType: mimeType 
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          setStatus(data.message);
+          setTimeout(() => {
+            setStatus("Připraven");
+            window.close();
+          }, 1000);
+        })
+        .catch(err => setStatus("Chyba odeslání"));
+      };
+      reader.readAsDataURL(blob);
     }
   </script>
 </body>
