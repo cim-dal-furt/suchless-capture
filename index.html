@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="manifest" href="manifest.json">
-  <title>SUCHLESS Capture</title>
+  <title>SUCHLESS capture</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -98,20 +98,20 @@
 
   <div class="glass-card">
     <div class="header">
-      <span>SUCHLESS CAPTURE</span>
+      <span>Instatní poznámka</span>
       <span id="status">Připraven</span>
     </div>
 
     <textarea id="txt" placeholder="Napiš nebo vlož text..."></textarea>
-    <button class="btn btn-send" onclick="sendText()">✍️ Odeslat text</button>
+    <button class="btn btn-send" onclick="sendText()">✍️ Odeslat textovou poznámku</button>
 
     <div class="grid">
-      <button id="recBtn" class="btn btn-audio" onclick="toggleAudio()">🎤 Audio</button>
+      <button id="recBtn" class="btn btn-audio" onclick="toggleAudio()">🎤 Hlasová poznámka</button>
       
-      <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Foťák</button>
+      <button class="btn btn-cam" onclick="document.getElementById('cam').click()">📸 Vyfotit</button>
       <input type="file" id="cam" style="display:none" accept="image/*" capture="environment" onchange="sendCameraPhoto(this.files[0])">
       
-      <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Přiložit soubor</button>
+      <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Nahrát soubor</button>
       <input type="file" id="file" style="display:none" onchange="sendFile(this.files[0])">
     </div>
   </div>
