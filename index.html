@@ -126,7 +126,9 @@
 
     let isRec = false;
     let audioTimer = null, audioSeconds = 0;
-    let audioCtx = null, scriptNode = null, micStream = null, audioBuffers = [];
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let micStream = null;
 
     function setStatus(msg) { document.getElementById('status').innerText = msg; }
 
@@ -158,105 +160,59 @@
       document.getElementById('txt').value = '';
     }
 
-    // 2. NAHRÁVÁNÍ AUDIA (RIFF WAV 16-bit PCM)
-    async function toggleAudio() {
-      const btn = document.getElementById('recBtn');
-      if (!isRec) {
-        try {
-          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const source = audioCtx.createMediaStreamSource(micStream);
-          
-          scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
-          audioBuffers = [];
-          
-          scriptNode.onaudioprocess = e => {
-            if (!isRec) return;
-            const input = e.inputBuffer.getChannelData(0);
-            audioBuffers.push(new Float32Array(input));
-          };
+    // 2. NAHRÁVÁNÍ AUDIA
+    // PŮVODNÍ - celá toggleAudio funkce, nahraď ji tímto:
+async function toggleAudio() {
+  const btn = document.getElementById('recBtn');
+  if (!isRec) {
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // WebM/Opus místo WAV - ~10x menší soubor, stejná kvalita pro přepis
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm';
+      
+      mediaRecorder = new MediaRecorder(micStream, { mimeType });
+      audioChunks = [];
 
-          source.connect(scriptNode);
-          scriptNode.connect(audioCtx.destination);
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
 
-          isRec = true;
-          audioSeconds = 0;
-          btn.innerText = `⏹️ Stop (00:00)`;
-          btn.classList.add('rec');
-          setStatus("Nahrávám audio (WAV)...");
+      mediaRecorder.onstop = () => {
+        const webmBlob = new Blob(audioChunks, { type: mimeType });
+        const fileName = `audio_${getFormattedDateTime()}.webm`;
+        postData(webmBlob, fileName, mimeType);
+      };
 
-          audioTimer = setInterval(() => {
-            audioSeconds++;
-            const formatted = formatTime(audioSeconds);
-            btn.innerText = `⏹️ Stop (${formatted})`;
-            setStatus(`Nahrávám... ${formatted}`);
-          }, 1000);
+      mediaRecorder.start();
+      isRec = true;
+      audioSeconds = 0;
+      btn.innerText = `⏹️ Stop (00:00)`;
+      btn.classList.add('rec');
+      setStatus("Nahrávám audio...");
 
-        } catch (err) { 
-          setStatus("Chyba mikrofonu"); 
-        }
-      } else {
-        isRec = false;
-        clearInterval(audioTimer);
-        
-        if (scriptNode) scriptNode.disconnect();
-        if (micStream) micStream.getTracks().forEach(t => t.stop());
-        
-        btn.innerText = "🎤 Audio";
-        btn.classList.remove('rec');
-        setStatus("Generuji WAV...");
+      audioTimer = setInterval(() => {
+        audioSeconds++;
+        const formatted = formatTime(audioSeconds);
+        btn.innerText = `⏹️ Stop (${formatted})`;
+        setStatus(`Nahrávám... ${formatted}`);
+      }, 1000);
 
-        const sampleRate = audioCtx.sampleRate;
-        audioCtx.close();
-        
-        const wavBlob = exportWAV(audioBuffers, sampleRate);
-        const fileName = `audio_${getFormattedDateTime()}.wav`;
-        postData(wavBlob, fileName, 'audio/wav');
-      }
+    } catch (err) {
+      setStatus("Chyba mikrofonu");
     }
-
-    function exportWAV(buffers, sampleRate) {
-      let bufferLen = 0;
-      for (let i = 0; i < buffers.length; i++) bufferLen += buffers[i].length;
-      const samples = new Float32Array(bufferLen);
-      let offset = 0;
-      for (let i = 0; i < buffers.length; i++) {
-        samples.set(buffers[i], offset);
-        offset += buffers[i].length;
-      }
-
-      const buffer = new ArrayBuffer(44 + samples.length * 2);
-      const view = new DataView(buffer);
-
-      writeString(view, 0, 'RIFF');
-      view.setUint32(4, 36 + samples.length * 2, true);
-      writeString(view, 8, 'WAVE');
-      writeString(view, 12, 'fmt ');
-      view.setUint32(16, 16, true);
-      view.setUint16(20, 1, true);
-      view.setUint16(22, 1, true);
-      view.setUint32(24, sampleRate, true);
-      view.setUint32(28, sampleRate * 2, true);
-      view.setUint16(32, 2, true);
-      view.setUint16(34, 16, true);
-      writeString(view, 36, 'data');
-      view.setUint32(40, samples.length * 2, true);
-
-      let index = 44;
-      for (let i = 0; i < samples.length; i++) {
-        let s = Math.max(-1, Math.min(1, samples[i]));
-        view.setInt16(index, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-        index += 2;
-      }
-
-      return new Blob([view], { type: 'audio/wav' });
-    }
-
-    function writeString(view, offset, string) {
-      for (let i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i));
-      }
-    }
+  } else {
+    isRec = false;
+    clearInterval(audioTimer);
+    mediaRecorder.stop();
+    if (micStream) micStream.getTracks().forEach(t => t.stop());
+    btn.innerText = "🎤 Audio";
+    btn.classList.remove('rec');
+    setStatus("Ukládám záznam...");
+  }
+}
 
     // 3. ODESLÁNÍ FOTKY Z FOŤÁKU (.jpg)
     function sendCameraPhoto(f) {
