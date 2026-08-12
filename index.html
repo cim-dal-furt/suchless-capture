@@ -146,6 +146,41 @@
       const seconds = String(now.getSeconds()).padStart(2, '0');
       return `${day}_${month}_${year}_${hours}${minutes}${seconds}`;
     }
+    function compressImage(file, maxWidth = 1920, quality = 0.75) {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          resolve(blob || file);
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+}
 
     // 1. ODESLÁNÍ TEXTU (.md)
     function sendText() {
@@ -259,47 +294,62 @@
     }
 
     // 3. ODESLÁNÍ FOTKY Z FOŤÁKU (.jpg)
-    function sendCameraPhoto(f) {
+    async function sendCameraPhoto(f) {
       if (!f) return;
+      setStatus("Zpracovávám fotku...");
+      const compressedBlob = await compressImage(f, 1920, 0.75);
+  
+      const nativeName = (f.name && f.name !== 'image.jpg' && f.name !== '') 
+      ? f.name 
+      : `IMG_${getFormattedDateTime()}.jpg`;
+
       setStatus("Ukládám fotku...");
-      const fileName = fileObject.name; 
-      postData(f, fileName, 'image/jpeg');
+      postData(compressedBlob, nativeName, 'image/jpeg');
     }
 
     // 4. ODESLÁNÍ LIBOVOLNÉHO SOUBORU
-    function sendFile(f) {
+    async function sendFile(f) {
       if (!f) return;
-      setStatus("Ukládám soubor...");
-      const ext = f.name.includes('.') ? f.name.split('.').pop() : 'bin';
-      const fileName = `soubor_${getFormattedDateTime()}.${ext}`;
-      postData(f, fileName, f.type || 'application/octet-stream');
-    }
-
+      setStatus("Zpracovávám soubor...");
+  
+      let blobToSend = f;
+      if (f.type.startsWith('image/')) {
+        blobToSend = await compressImage(f, 1920, 0.75);
+      }
+  
+  const fileName = f.name || `soubor_${getFormattedDateTime()}`;
+  setStatus("Ukládám soubor...");
+  postData(blobToSend, fileName, f.type || 'application/octet-stream');
+}
     function postData(blob, fileName, mimeType) {
-      const reader = new FileReader();
-      reader.onloadend = function () {
-        const base64 = reader.result.split(',')[1];
-        fetch(GAS_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ 
-            token: PWA_SECRET_TOKEN,
-            base64: base64, 
-            fileName: fileName, 
-            mimeType: mimeType 
-          })
-        })
-        .then(res => res.json())
-        .then(data => {
-          setStatus(data.message);
-          setTimeout(() => {
-            setStatus("Připraven");
-            window.close();
-          }, 1000);
-        })
-        .catch(err => setStatus("Chyba odeslání"));
-      };
-      reader.readAsDataURL(blob);
-    }
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    const base64 = reader.result.split(',')[1];
+    fetch(GAS_API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        token: PWA_SECRET_TOKEN,
+        base64: base64, 
+        fileName: fileName, 
+        mimeType: mimeType 
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      setStatus(data.message || "Uloženo");
+      setTimeout(() => {
+        setStatus("Připraven");
+        document.getElementById('cam').value = '';
+        document.getElementById('file').value = '';
+      }, 1000);
+    })
+    .catch(err => {
+      setStatus("Chyba odeslání");
+      console.error(err);
+    });
+  };
+  reader.readAsDataURL(blob);
+}
   </script>
 </body>
 </html>
