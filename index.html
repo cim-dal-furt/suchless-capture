@@ -112,7 +112,7 @@
       <input type="file" id="cam" style="display:none" accept="image/*" capture="environment" onchange="sendCameraPhoto(this.files[0])">
       
       <button class="btn btn-file" onclick="document.getElementById('file').click()">📁 Přiložit soubor</button>
-      <input type="file" id="file" style="display:none" onchange="sendFile(this.files[0])">
+      <input type="file" id="file" style="display:none" accept="*/*" onchange="sendFile(this.files[0])">
     </div>
   </div>
 
@@ -270,9 +270,7 @@
     function sendFile(f) {
       if (!f) return;
       setStatus("Ukládám soubor...");
-      const ext = f.name.includes('.') ? f.name.split('.').pop() : 'bin';
-      const fileName = `soubor_${getFormattedDateTime()}.${ext}`;
-      postData(f, fileName, f.type || 'application/octet-stream');
+      postData(f, f.name, f.type || 'application/octet-stream');
     }
 
     function postData(blob, fileName, mimeType) {
