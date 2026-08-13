@@ -785,7 +785,6 @@
             <input type="checkbox" id="closeAfterSend" checked>
             Zavřít po odeslání
           </label>
-          <span id="queueInfo">Ve frontě: 0</span>
         </div>
 
         <div id="status">Připraveno</div>
@@ -798,7 +797,6 @@
     // Úplná adresa bez oříznutí
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycby1wPlRee-lSHkxAD1DyFTHHRFg9_aXogjOpCyzEsb88SaY6XdJEdNNsWEwAc2ocew1DA/exec";
     const PWA_SECRET_TOKEN = "FordFocus.1816v";
-    const QUEUE_KEY = "suchlessCaptureQueueV1";
     const CLOSE_AFTER_SEND_KEY = "suchlessCloseAfterSendV1";
     const THEME_KEY = "suchlessCaptureThemeV1";
 
@@ -808,7 +806,6 @@
 
     const statusEl = document.getElementById('status');
     const statusChipEl = document.getElementById('statusChip');
-    const queueInfoEl = document.getElementById('queueInfo');
     const closeAfterSendEl = document.getElementById('closeAfterSend');
     const themeToggleEl = document.getElementById('themeToggle');
     const themeColorMetaEl = document.getElementById('themeColorMeta');
@@ -876,41 +873,14 @@
 
       if (state === 'recording') statusChipEl.innerText = 'Nahrávání';
       if (state === 'busy') statusChipEl.innerText = 'Ukládám';
-      if (state === 'queued') statusChipEl.innerText = 'Offline fronta';
       if (state === 'success') statusChipEl.innerText = 'Hotovo';
       if (state === 'error') statusChipEl.innerText = 'Chyba';
       if (state === 'ready') statusChipEl.innerText = 'Připraveno';
     }
 
-    function getQueue() {
-      try {
-        return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
-      } catch {
-        return [];
-      }
-    }
+    
 
-    function setQueue(queue) {
-      localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
-      updateQueueInfo();
-    }
-
-    function updateQueueInfo() {
-      const count = getQueue().length;
-      queueInfoEl.innerText = `Ve frontě: ${count}`;
-    }
-
-    function enqueuePayload(payload) {
-      try {
-        const queue = getQueue();
-        queue.push(payload);
-        setQueue(queue);
-      } catch (err) {
-        // Pokud fotka překročí kapacitu localStorage, vymažeme staré položky a zkusíme znovu
-        console.warn("Kapacita paměti plná:", err);
-      }
-    }
-
+    
     function formatTime(sec) {
       const m = Math.floor(sec / 60).toString().padStart(2, '0');
       const s = (sec % 60).toString().padStart(2, '0');
@@ -941,42 +911,7 @@
       return response.json();
     }
 
-    async function flushQueue() {
-      if (!navigator.onLine) {
-        if (getQueue().length > 0) {
-          setStatus('Offline režim: čekám na připojení', 'queued');
-        }
-        return;
-      }
-
-      const queue = getQueue();
-      if (queue.length === 0) return;
-
-      setStatus(`Synchronizuji frontu (${queue.length})...`, 'busy');
-      let remaining = [...queue];
-      let sentCount = 0;
-
-      while (remaining.length > 0) {
-        const nextPayload = remaining[0];
-        try {
-          await sendPayload(nextPayload);
-          sentCount++;
-          remaining.shift();
-          setQueue(remaining);
-        } catch {
-          break;
-        }
-      }
-
-      if (sentCount > 0) {
-        setStatus(`Synchronizováno položek: ${sentCount}`, 'success');
-        setTimeout(() => {
-          if (!isRec) setStatus('Připraveno', 'ready');
-        }, 1000);
-      } else if (remaining.length > 0) {
-        setStatus('Čekám na stabilní připojení k internetu', 'queued');
-      }
-    }
+    
 
     function onUploadSuccess(message) {
       setStatus(message || 'Uloženo', 'success');
@@ -1006,10 +941,7 @@
       }, 120);
     }
 
-    function queueForLater(payload) {
-      enqueuePayload(payload);
-      setStatus('Bez připojení: uloženo do fronty', 'queued');
-    }
+    
 
     function sendText() {
       const val = document.getElementById('txt').value.trim();
@@ -1086,33 +1018,31 @@
     }
 
     function postData(blob, fileName, mimeType) {
-      const reader = new FileReader();
-      reader.onloadend = async function () {
-        const base64 = reader.result.split(',')[1];
-        const payload = {
-          token: PWA_SECRET_TOKEN,
-          base64,
-          fileName,
-          mimeType
-        };
+  const reader = new FileReader();
+  reader.onloadend = async function () {
+    const base64 = reader.result.split(',')[1];
+    const payload = {
+      token: PWA_SECRET_TOKEN,
+      base64,
+      fileName,
+      mimeType
+    };
 
-        try {
-          const data = await sendPayload(payload);
-          onUploadSuccess(data && data.message ? data.message : 'Uloženo');
-          flushQueue();
-        } catch (err) {
-          queueForLater(payload);
-        }
-      };
-      reader.readAsDataURL(blob);
+    try {
+      const data = await sendPayload(payload);
+      onUploadSuccess(data && data.message ? data.message : 'Uloženo');
+    } catch (err) {
+      setStatus('Chyba odeslání. Zkuste znovu.', 'error');
+      console.error("Chyba přenosu:", err);
     }
-
-    window.addEventListener('online', flushQueue);
+  };
+  reader.readAsDataURL(blob);
+}
+ 
     window.addEventListener('load', () => {
-      updateQueueInfo();
-      setStatus('Připraveno', 'ready');
-      flushQueue();
-    });
+  setStatus('Připraveno', 'ready');
+});
+
   </script>
 </body>
 </html>
