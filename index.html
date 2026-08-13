@@ -197,7 +197,7 @@
       width: 100%;
     }
 
-    /* Oblast 1: Zvětšený Hero Header (+25% prostornější) */
+    /* Oblast 1: Hero Header */
     .sheet-hero {
       padding: 18px 16px;
       position: relative;
@@ -320,7 +320,6 @@
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.24);
     }
 
-    /* Zmenšená výška pole (-25%) */
     .shine-border {
       position: relative;
       border-radius: 16px;
@@ -392,7 +391,6 @@
       flex: 0 0 auto;
     }
 
-    /* Obdélníková postranní tlačítka */
     .btn-rect {
       flex: 1;
       height: 46px;
@@ -408,14 +406,12 @@
       transition: transform 120ms ease, filter 120ms ease, background-color 120ms ease;
     }
 
-    /* Žluté podbarvení pro Nahrát soubor */
     .btn-file-yellow {
       background: var(--orange-soft);
       border-color: var(--orange-border);
       color: var(--orange-text);
     }
 
-    /* Jemně modré podbarvení pro Uložit poznámku (odeslání) */
     .btn-save-blue {
       background: var(--blue-soft);
       border-color: var(--blue-border);
@@ -432,7 +428,6 @@
       stroke-linejoin: round;
     }
 
-    /* Dominantní kruhové tlačítko mikrofonu */
     .btn-circle-dominant {
       width: 72px;
       height: 72px;
@@ -478,7 +473,7 @@
       filter: brightness(0.95);
     }
 
-    /* Dolní stavová lišta */
+    /* Dolní stavová lišta s decentním textem a semaforovým puntíkem */
     .bottom-status-container {
       display: flex;
       flex-direction: column;
@@ -489,30 +484,56 @@
     .status-chip {
       display: inline-flex;
       align-items: center;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #cbe0fb;
-      background: rgba(255, 255, 255, 0.92);
-      color: #2f5f86;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.03em;
+      gap: 6px;
+      padding: 2px 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: var(--text-soft);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
       white-space: nowrap;
       width: fit-content;
-      box-shadow: 0 4px 8px rgba(26, 84, 129, 0.08);
     }
 
-    .status-chip.ready { color: #2f5f86; }
-    .status-chip.busy { color: #27537a; }
-    .status-chip.recording { color: #b53d3d; border-color: #f3cccc; }
-    .status-chip.success { color: #1f8d53; border-color: #c5efd8; }
-    .status-chip.error { color: #b53d3d; border-color: #f3cccc; }
+    .status-chip::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      transition: background-color 200ms ease;
+    }
+
+    /* Semaforová indikace barvy puntíku podle stavu */
+    .status-chip.ready::before,
+    .status-chip.success::before {
+      background: #22c55e; /* Zelená */
+    }
+
+    .status-chip.busy::before {
+      background: #0284c7; /* Modrá (pracuje / ukládá) */
+    }
+
+    .status-chip.recording::before {
+      background: #f97316; /* Oranžová / Žlutá (nahrává) */
+    }
+
+    .status-chip.error::before {
+      background: #ef4444; /* Červená (chyba) */
+    }
 
     body[data-theme="dark"] .status-chip {
-      background: rgba(38, 38, 38, 0.94);
-      color: #dedede;
-      border-color: #4a4a4a;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.16);
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      box-shadow: none;
+    }
+
+    body[data-theme="dark"] .status-chip.busy::before {
+      background: #38bdf8;
     }
 
     .status-line {
@@ -598,7 +619,7 @@
     <div id="closeBtn" class="close-overlay" aria-label="Zavřít aplikaci"></div>
 
     <div class="app-main">
-      <!-- Oblast 1: Hero Header (Zvětšený) -->
+      <!-- Oblast 1: Hero Header -->
       <div class="sheet-hero">
         <div class="hero-title">SUCHLESS <span class="hero-title-small">Capture Studio</span></div>
         <div class="hero-sub">Rychle zachyť nápad dřív, než zmizí.</div>
@@ -626,7 +647,6 @@
         </div>
 
         <div class="controls-row">
-          <!-- Žluté tlačítko pro Nahrát soubor -->
           <button id="fileBtn" class="btn-rect btn-file-yellow" aria-label="Nahrát soubor">
             <svg viewBox="0 0 24 24">
               <path d="M12 16V5"></path>
@@ -636,7 +656,6 @@
           </button>
           <input type="file" id="file" class="hidden-file-input" accept="*/*">
 
-          <!-- Dominantní kruhový mikrofon -->
           <button id="recBtn" class="btn-circle-dominant" aria-label="Hlasová poznámka">
             <svg viewBox="0 0 24 24">
               <rect x="9" y="3" width="6" height="11" rx="3"></rect>
@@ -645,7 +664,6 @@
             </svg>
           </button>
 
-          <!-- Modře podbarvené tlačítko pro Odeslat / Uložit poznámku s ikonou vlaštovky -->
           <button id="saveBtn" class="btn-rect btn-save-blue" aria-label="Uložit poznámku">
             <svg viewBox="0 0 24 24">
               <line x1="22" y1="2" x2="11" y2="13"></line>
