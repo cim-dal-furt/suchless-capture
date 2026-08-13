@@ -21,6 +21,9 @@
       --primary-strong: #094a6d;
       --primary-soft: #e9f3fb;
       --orange: #f29a2e;
+      --orange-soft: #fff7ed;
+      --orange-border: #fde68a;
+      --orange-text: #b45309;
       --success: #22c55e;
       --danger: #d63e3e;
       --warning: #d8922a;
@@ -57,6 +60,9 @@
       --primary: #d8d8d8;
       --primary-strong: #a8a8a8;
       --primary-soft: #2a2a2a;
+      --orange-soft: #2d2418;
+      --orange-border: #523b1c;
+      --orange-text: #f59e0b;
       background:
         radial-gradient(120% 85% at 12% -10%, rgba(120, 120, 120, 0.28), transparent 62%),
         radial-gradient(110% 75% at 100% 5%, rgba(255, 255, 255, 0.08), transparent 62%),
@@ -65,7 +71,7 @@
 
     .top-left-controls {
       position: absolute;
-      top: calc(12px + env(safe-area-inset-top));
+      top: calc(10px + env(safe-area-inset-top));
       left: 16px;
       display: inline-flex;
       align-items: center;
@@ -75,7 +81,7 @@
 
     .close-overlay {
       position: absolute;
-      top: calc(12px + env(safe-area-inset-top));
+      top: calc(10px + env(safe-area-inset-top));
       right: 16px;
       width: 36px;
       height: 36px;
@@ -177,16 +183,17 @@
     }
 
     .app-main {
-      padding: calc(60px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+      padding: calc(52px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       height: 100%;
       width: 100%;
     }
 
+    /* Oblast 1: Hero Header */
     .sheet-hero {
-      padding: 14px 16px;
+      padding: 10px 12px;
       position: relative;
       overflow: hidden;
       background:
@@ -194,25 +201,19 @@
         radial-gradient(90% 80% at 95% 0%, rgba(255, 223, 187, 0.6), transparent 62%),
         linear-gradient(155deg, #ffffff 0%, #f2f8ff 100%);
       border: 1px solid var(--border);
-      border-radius: 24px;
+      border-radius: 20px;
       flex: 0 0 auto;
     }
 
     body[data-theme="dark"] .sheet-hero {
       background:
         radial-gradient(130% 90% at 6% 2%, rgba(120, 120, 120, 0.22), transparent 62%),
-        radial-gradient(90% 80% at 95% 0%, rgba(255, 255, 255, 0.08), transparent 62%),
+        radial-gradient(90% 80% at 95% 0%, rgba(255, 223, 187, 0.08), transparent 62%),
         linear-gradient(155deg, #242424 0%, #191919 100%);
     }
 
-    .hero-main {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
     .hero-title {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       line-height: 1.2;
       color: #1f4c71;
       font-weight: 800;
@@ -224,8 +225,8 @@
     }
 
     .hero-sub {
-      margin-top: 6px;
-      font-size: 0.78rem;
+      margin-top: 4px;
+      font-size: 0.74rem;
       color: var(--text-soft);
       font-weight: 600;
     }
@@ -234,32 +235,95 @@
       color: #eeeeee;
     }
 
+    /* Oblast 2: Info Pill */
+    .info-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #43698f;
+      font-weight: 500;
+      font-size: 0.7rem;
+      font-style: italic;
+      padding: 6px 12px;
+      box-shadow: 0 4px 10px rgba(31, 84, 133, 0.06);
+      flex: 0 0 auto;
+    }
+
+    body[data-theme="dark"] .info-pill {
+      background: #242424;
+      color: #d0d0d0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Oblast 3: Overview Grid */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .mini-card {
+      border-radius: 14px;
+      border: 1px solid #e1ecfb;
+      padding: 6px 10px;
+      background: linear-gradient(150deg, #ffffff 0%, #f6faff 100%);
+      box-shadow: 0 6px 12px rgba(31, 84, 133, 0.06);
+    }
+
+    body[data-theme="dark"] .mini-card {
+      background: linear-gradient(150deg, #232323 0%, #292929 100%);
+      border-color: #3d3d3d;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    body[data-theme="dark"] .mini-card h3 {
+      color: #eeeeee;
+    }
+
+    .mini-card h3 {
+      color: #274a70;
+      font-size: 0.8rem;
+      margin-bottom: 2px;
+    }
+
+    .mini-card p {
+      color: var(--text-soft);
+      font-size: 0.68rem;
+      line-height: 1.15;
+    }
+
+    /* Oblast 4: Hlavní karta s textovým polem a ovládáním */
     .sheet-content {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       border: 1px solid var(--border);
-      border-radius: 24px;
+      border-radius: 20px;
       background: var(--card);
-      padding: 14px;
-      box-shadow: 0 14px 22px rgba(27, 83, 132, 0.1);
+      padding: 10px;
+      box-shadow: 0 10px 20px rgba(27, 83, 132, 0.08);
       flex: 1 1 auto;
       min-height: 0;
     }
 
     body[data-theme="dark"] .sheet-content {
-      box-shadow: 0 14px 22px rgba(0, 0, 0, 0.24);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.24);
     }
 
     .shine-border {
       position: relative;
-      border-radius: 18px;
+      border-radius: 16px;
       padding: 1px;
       overflow: hidden;
       background: linear-gradient(120deg, rgba(143, 192, 231, 0.2), rgba(242, 154, 46, 0.26), rgba(143, 192, 231, 0.2));
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
+      min-height: 100px;
     }
 
     .shine-border::before {
@@ -275,11 +339,11 @@
       height: 100%;
       background: var(--card-soft);
       border: 1px solid #d8e7fa;
-      border-radius: 17px;
+      border-radius: 15px;
       color: #213a5b;
       font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      padding: 14px;
-      font-size: 0.95rem;
+      padding: 10px 12px;
+      font-size: 0.9rem;
       line-height: 1.35;
       resize: none;
       outline: none;
@@ -304,27 +368,28 @@
 
     textarea:focus {
       border-color: #8fc0e7;
-      box-shadow: 0 0 0 4px rgba(143, 192, 231, 0.26);
+      box-shadow: 0 0 0 3px rgba(143, 192, 231, 0.26);
     }
 
     .hidden-file-input {
       display: none;
     }
 
-    /* Dolní lišta s tlačítky */
+    /* Dolní ovládací lišta tlačítek */
     .controls-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 16px;
-      padding: 4px 0;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 2px 0;
       flex: 0 0 auto;
     }
 
-    .btn-icon-only {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
+    /* Obdélníková postranní tlačítka */
+    .btn-rect {
+      flex: 1;
+      height: 46px;
+      border-radius: 14px;
       border: 1px solid var(--border);
       background: #ffffff;
       color: #36587e;
@@ -332,19 +397,31 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 10px 14px rgba(31, 84, 133, 0.08);
+      box-shadow: 0 6px 12px rgba(31, 84, 133, 0.06);
       transition: transform 120ms ease, filter 120ms ease, background-color 120ms ease;
-      flex: 0 0 auto;
     }
 
-    body[data-theme="dark"] .btn-icon-only {
-      background: linear-gradient(180deg, #2a2a2a 0%, #222222 100%);
-      color: #e2e2e2;
-      border-color: #424242;
-      box-shadow: 0 10px 14px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    /* Žluté/Oranžové podbarvení pro Nahrát soubor */
+    .btn-file-yellow {
+      background: var(--orange-soft);
+      border-color: var(--orange-border);
+      color: var(--orange-text);
     }
 
-    .btn-icon-only svg {
+    /* Modré primární podbarvení pro Uložit poznámku */
+    .btn-save-primary {
+      background: linear-gradient(165deg, var(--primary), var(--primary-strong));
+      border-color: #206b98;
+      color: #f3f9ff;
+    }
+
+    body[data-theme="dark"] .btn-save-primary {
+      background: linear-gradient(180deg, #2d4658 0%, #253846 100%);
+      border-color: #486a82;
+      color: #eef8ff;
+    }
+
+    .btn-rect svg {
       width: 22px;
       height: 22px;
       stroke: currentColor;
@@ -354,32 +431,33 @@
       stroke-linejoin: round;
     }
 
-    /* Kruhové tlačítko pro hlasovou poznámku */
-    .btn-circle {
-      width: 64px;
-      height: 64px;
+    /* Velké dominantní kruhové tlačítko mikrofonu */
+    .btn-circle-dominant {
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
-      border: 1px solid #216d9b;
+      border: 2px solid #216d9b;
       background: linear-gradient(170deg, #0f5d88, #0a4768);
       color: #f2f8ff;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 12px 22px rgba(14, 94, 137, 0.35);
+      box-shadow: 0 10px 24px rgba(14, 94, 137, 0.4);
       transition: transform 120ms ease, filter 120ms ease;
       flex: 0 0 auto;
+      margin: 0 4px;
     }
 
-    body[data-theme="dark"] .btn-circle {
+    body[data-theme="dark"] .btn-circle-dominant {
       background: linear-gradient(180deg, #2d4658 0%, #253846 100%);
       border-color: #486a82;
       color: #eef8ff;
     }
 
-    .btn-circle svg {
-      width: 26px;
-      height: 26px;
+    .btn-circle-dominant svg {
+      width: 30px;
+      height: 30px;
       stroke: currentColor;
       fill: none;
       stroke-width: 2;
@@ -387,20 +465,14 @@
       stroke-linejoin: round;
     }
 
-    .btn-primary-icon {
-      background: linear-gradient(165deg, var(--primary), var(--primary-strong));
-      border-color: #206b98;
-      color: #f3f9ff;
-    }
-
-    .btn-circle.rec {
+    .btn-circle-dominant.rec {
       background: linear-gradient(165deg, #ca5b4a, #b34134);
       border-color: #de8f84;
       animation: pulse 1.1s ease-in-out infinite;
     }
 
-    .btn-icon-only:active,
-    .btn-circle:active {
+    .btn-rect:active,
+    .btn-circle-dominant:active {
       transform: scale(0.95);
       filter: brightness(0.95);
     }
@@ -409,24 +481,24 @@
     .bottom-status-container {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       flex: 0 0 auto;
     }
 
     .status-chip {
       display: inline-flex;
       align-items: center;
-      padding: 6px 12px;
+      padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid #cbe0fb;
       background: rgba(255, 255, 255, 0.92);
       color: #2f5f86;
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.03em;
       white-space: nowrap;
       width: fit-content;
-      box-shadow: 0 6px 12px rgba(26, 84, 129, 0.08);
+      box-shadow: 0 4px 8px rgba(26, 84, 129, 0.08);
     }
 
     .status-chip.ready { color: #2f5f86; }
@@ -439,7 +511,7 @@
       background: rgba(38, 38, 38, 0.94);
       color: #dedede;
       border-color: #4a4a4a;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.16);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.16);
     }
 
     .status-line {
@@ -525,22 +597,35 @@
     <div id="closeBtn" class="close-overlay" aria-label="Zavřít aplikaci"></div>
 
     <div class="app-main">
+      <!-- Oblast 1: Hero Header -->
       <div class="sheet-hero">
-        <div class="hero-main">
-          <div>
-            <div class="hero-title">SUCHLESS <span class="hero-title-small">Capture Studio</span></div>
-            <div class="hero-sub">Rychle zachyť nápad dřív, než zmizí.</div>
-          </div>
+        <div class="hero-title">SUCHLESS <span class="hero-title-small">Capture Studio</span></div>
+        <div class="hero-sub">Rychle zachyť nápad dřív, než zmizí.</div>
+      </div>
+
+      <!-- Oblast 2: Info Pill -->
+      <div class="info-pill">Pracuj s poznámkami, hlasem i soubory na jednom místě</div>
+
+      <!-- Oblast 3: Overview Grid -->
+      <div class="overview-grid" aria-hidden="true">
+        <div class="mini-card">
+          <h3>Poznámky</h3>
+          <p>Rychlé textové zachycení myšlenek.</p>
+        </div>
+        <div class="mini-card">
+          <h3>Hlas a média</h3>
+          <p>Nahrávky, fotky a soubory během pár sekund.</p>
         </div>
       </div>
 
+      <!-- Oblast 4: Hlavní karta s polem a tlačítky -->
       <div class="sheet-content">
         <div class="shine-border">
           <textarea id="txt" placeholder="Napiš nápad, úkol nebo stručnou poznámku..."></textarea>
         </div>
 
         <div class="controls-row">
-          <button id="fileBtn" class="btn-icon-only" aria-label="Nahrát soubor">
+          <button id="fileBtn" class="btn-rect btn-file-yellow" aria-label="Nahrát soubor">
             <svg viewBox="0 0 24 24">
               <path d="M12 16V5"></path>
               <path d="M8 9l4-4 4 4"></path>
@@ -549,7 +634,7 @@
           </button>
           <input type="file" id="file" class="hidden-file-input" accept="*/*">
 
-          <button id="recBtn" class="btn-circle" aria-label="Hlasová poznámka">
+          <button id="recBtn" class="btn-circle-dominant" aria-label="Hlasová poznámka">
             <svg viewBox="0 0 24 24">
               <rect x="9" y="3" width="6" height="11" rx="3"></rect>
               <path d="M5 11a7 7 0 0 0 14 0"></path>
@@ -557,7 +642,7 @@
             </svg>
           </button>
 
-          <button id="saveBtn" class="btn-icon-only btn-primary-icon" aria-label="Uložit poznámku">
+          <button id="saveBtn" class="btn-rect btn-save-primary" aria-label="Uložit poznámku">
             <svg viewBox="0 0 24 24">
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path>
