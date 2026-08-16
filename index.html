@@ -757,16 +757,17 @@
     }
 
     async function sendPayload(payload) {
-      const response = await fetch(GAS_API_URL, {
+      const body = JSON.stringify(payload);
+      const options = {
         method: 'POST',
-        body: JSON.stringify(payload)
-      });
+        body: body
+      };
 
-      if (!response.ok) {
-        throw new Error('Chyba sítě');
+      if (body.length < 64000) {
+        options.keepalive = true;
       }
 
-      return response.json();
+      return fetch(GAS_API_URL, options);
     }
 
     function onUploadSuccess(message) {
@@ -793,11 +794,10 @@
     function sendText() {
       const val = document.getElementById('txt').value.trim();
       if (!val) return;
-      setStatus('Ukládám...', 'busy');
+      document.getElementById('txt').value = '';
       const blob = new Blob([val], { type: 'text/markdown' });
       const fileName = `text_${getFormattedDateTime()}.md`;
       postData(blob, fileName, 'text/markdown');
-      document.getElementById('txt').value = '';
     }
 
     async function toggleAudio() {
@@ -847,13 +847,12 @@
 
     function sendFile(f) {
       if (!f) return;
-      setStatus('Nahrávám...', 'busy');
       postData(f, f.name, f.type || 'application/octet-stream');
     }
 
     function postData(blob, fileName, mimeType) {
       const reader = new FileReader();
-      reader.onloadend = async function () {
+      reader.onloadend = function () {
         const base64 = reader.result.split(',')[1];
         const payload = {
           token: PWA_SECRET_TOKEN,
@@ -862,13 +861,11 @@
           mimeType
         };
 
-        try {
-          const data = await sendPayload(payload);
-          onUploadSuccess(data && data.message ? data.message : 'Uloženo');
-        } catch (err) {
-          setStatus('Chyba odeslání', 'error');
-          console.error("Chyba přenosu:", err);
-        }
+        onUploadSuccess('Uloženo');
+
+        sendPayload(payload).catch((err) => {
+          console.error("Chyba přenosu na pozadí:", err);
+        });
       };
       reader.readAsDataURL(blob);
     }
