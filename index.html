@@ -193,7 +193,6 @@
       z-index: 20;
     }
 
-    /* Paměťový spouštěč (Prompt Pill) */
     .prompt-pill {
       display: none;
       align-items: center;
@@ -345,9 +344,16 @@
       line-height: 1.4;
       resize: none;
       padding: 8px 4px;
+      overflow-y: hidden;
     }
 
-    textarea::placeholder { color: var(--text-muted); font-weight: 400; }
+    textarea::placeholder {
+      color: var(--text-muted);
+      font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     .audio-recording-bar {
       display: none;
@@ -526,7 +532,6 @@
     </main>
 
     <footer class="input-section">
-      <!-- Paměťový spouštěč pro Chronicle -->
       <div id="promptPill" class="prompt-pill" title="Klikni pro další otázku">
         <span class="prompt-icon">💡</span>
         <span id="promptText" class="prompt-text"></span>
@@ -619,7 +624,6 @@
       "Zachyť nápad dřív, než zmizí."
     ];
 
-    // Databáze 180 paměťových spouštěčů pro rodinnou kroniku
     const MEMORY_PROMPTS = [
       "Jak voněla babiččina kuchyně, když se peklo o víkendu?",
       "Jaké bylo tvé úplně první auto a co se na něm poprvé pokazilo?",
@@ -836,7 +840,6 @@
         else item.classList.remove('active');
       });
 
-      // Zobrazení paměťového spouštěče pouze pro Chronicle
       if (modeValue === 'chronicle') {
         promptText.innerText = getRandomPrompt();
         promptPill.style.display = 'flex';
@@ -890,7 +893,9 @@
 
     txtInput.addEventListener('input', () => {
       txtInput.style.height = 'auto';
-      txtInput.style.height = Math.min(txtInput.scrollHeight, 210) + 'px';
+      const scrollH = txtInput.scrollHeight;
+      txtInput.style.height = Math.min(scrollH, 210) + 'px';
+      txtInput.style.overflowY = scrollH > 210 ? 'auto' : 'hidden';
     });
 
     txtInput.addEventListener('keydown', (e) => {
@@ -1067,6 +1072,7 @@
 
       txtInput.value = '';
       txtInput.style.height = 'auto';
+      txtInput.style.overflowY = 'hidden';
       attachedFiles = [];
       renderThumbnails();
       setStatus('Uloženo', 'ready');
