@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#121212" id="themeColorMeta">
   <link rel="manifest" href="manifest.json">
-  <!-- Favicon: Logo brýlí se signálem -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 130 65'%3E%3Ccircle cx='30' cy='36' r='18' fill='none' stroke='%233b82f6' stroke-width='6'/%3E%3Cpath d='M48 34 C54 30, 62 30, 68 34' fill='none' stroke='%233b82f6' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='86' cy='36' r='18' fill='none' stroke='%233b82f6' stroke-width='6'/%3E%3Ccircle cx='86' cy='36' r='5.5' fill='%233b82f6'/%3E%3Cpath d='M92 14 A24 24 0 0 1 110 32' fill='none' stroke='%233b82f6' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M97 6 A33 33 0 0 1 119 28' fill='none' stroke='%233b82f6' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M102 -2 A42 42 0 0 1 128 24' fill='none' stroke='%233b82f6' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" type="image/svg+xml">
   <title>SUCHLESS Capture Studio</title>
   <style>
@@ -54,7 +53,6 @@
       position: relative;
     }
 
-    /* Top Bar s přepínačem vlevo a tématem vpravo */
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -64,7 +62,6 @@
       position: relative;
     }
 
-    /* Gemini Mode Dropdown Button */
     .mode-selector-btn {
       display: inline-flex;
       align-items: center;
@@ -77,7 +74,7 @@
       font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 120ms ease, background 150ms ease;
+      transition: transform 120ms ease;
     }
 
     .mode-selector-btn:active { transform: scale(0.96); }
@@ -93,11 +90,8 @@
       transition: transform 200ms ease;
     }
 
-    .mode-selector-btn.open svg {
-      transform: rotate(180deg);
-    }
+    .mode-selector-btn.open svg { transform: rotate(180deg); }
 
-    /* Plovoucí okno menu režimů */
     .mode-menu {
       position: absolute;
       top: calc(100% + 4px);
@@ -115,9 +109,7 @@
       animation: popIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .mode-menu.open {
-      display: flex;
-    }
+    .mode-menu.open { display: flex; }
 
     .mode-item {
       display: flex;
@@ -132,31 +124,12 @@
       font-weight: 500;
       cursor: pointer;
       text-align: left;
-      transition: background 120ms ease;
     }
 
-    .mode-item:active {
-      background: var(--surface-elevated);
-    }
-
-    .mode-item.active {
-      color: var(--primary);
-      font-weight: 700;
-      background: var(--surface-elevated);
-    }
-
-    .mode-item svg {
-      width: 16px;
-      height: 16px;
-      stroke: var(--primary);
-      fill: none;
-      stroke-width: 2.5;
-      display: none;
-    }
-
-    .mode-item.active svg {
-      display: block;
-    }
+    .mode-item:active { background: var(--surface-elevated); }
+    .mode-item.active { color: var(--primary); font-weight: 700; background: var(--surface-elevated); }
+    .mode-item svg { width: 16px; height: 16px; stroke: var(--primary); fill: none; stroke-width: 2.5; display: none; }
+    .mode-item.active svg { display: block; }
 
     .icon-btn {
       width: 40px;
@@ -187,7 +160,6 @@
     body[data-theme="dark"] .theme-toggle .sun-icon { display: none; }
     body[data-theme="dark"] .theme-toggle .moon-icon { display: block; }
 
-    /* Hero Střed */
     .center-hero {
       display: flex;
       flex-direction: column;
@@ -212,7 +184,6 @@
       color: var(--text);
     }
 
-    /* Plovoucí Input Sekce */
     .input-section {
       width: 100%;
       padding: 0 16px calc(16px + env(safe-area-inset-bottom));
@@ -222,7 +193,27 @@
       z-index: 20;
     }
 
-    /* Subtilní Semafor */
+    /* Paměťový spouštěč (Prompt Pill) */
+    .prompt-pill {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      line-height: 1.3;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 120ms ease, transform 100ms ease;
+      user-select: none;
+    }
+
+    .prompt-pill:active { transform: scale(0.98); background: var(--surface-elevated); }
+    .prompt-icon { color: var(--primary); flex-shrink: 0; font-size: 0.85rem; font-weight: 700; }
+    .prompt-text { flex: 1; font-weight: 500; }
+
     .status-badge {
       align-self: center;
       display: inline-flex;
@@ -245,7 +236,6 @@
     .status-dot.recording { background: var(--primary); }
     .status-dot.error { background: var(--danger); }
 
-    /* Hlavní Kapsle */
     .floating-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -256,7 +246,6 @@
       gap: 6px;
     }
 
-    /* Náhledy příloh */
     .thumbnails-row {
       display: none;
       gap: 8px;
@@ -283,11 +272,7 @@
       color: var(--text-muted);
     }
 
-    .thumb-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
 
     .thumb-del-btn {
       position: absolute;
@@ -306,7 +291,6 @@
       border: none;
     }
 
-    /* Řádek pro zápis */
     .input-row {
       display: flex;
       align-items: flex-end;
@@ -346,10 +330,7 @@
       border-radius: 50%;
     }
 
-    .send-btn:active {
-      transform: scale(0.92);
-      filter: brightness(0.9);
-    }
+    .send-btn:active { transform: scale(0.92); filter: brightness(0.9); }
 
     textarea {
       flex: 1;
@@ -366,12 +347,8 @@
       padding: 8px 4px;
     }
 
-    textarea::placeholder {
-      color: var(--text-muted);
-      font-weight: 400;
-    }
+    textarea::placeholder { color: var(--text-muted); font-weight: 400; }
 
-    /* Audio Rekordér Panel */
     .audio-recording-bar {
       display: none;
       align-items: center;
@@ -434,7 +411,6 @@
       cursor: pointer;
     }
 
-    /* Bottom Sheet Modal pro Přílohy */
     .backdrop {
       position: fixed;
       inset: 0;
@@ -445,10 +421,7 @@
       transition: opacity 200ms ease;
     }
 
-    .backdrop.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .backdrop.open { opacity: 1; pointer-events: auto; }
 
     .bottom-sheet {
       position: fixed;
@@ -503,39 +476,21 @@
     }
 
     .sheet-btn:active { transform: scale(0.95); }
-
-    .sheet-btn svg {
-      width: 24px;
-      height: 24px;
-      stroke: var(--primary);
-      fill: none;
-      stroke-width: 2;
-    }
-
+    .sheet-btn svg { width: 24px; height: 24px; stroke: var(--primary); fill: none; stroke-width: 2; }
     .hidden-input { display: none; }
 
-    @keyframes wave-pulse {
-      0% { transform: scaleY(0.4); }
-      100% { transform: scaleY(1.4); }
-    }
-
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.92) translateY(-6px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); }
-    }
+    @keyframes wave-pulse { 0% { transform: scaleY(0.4); } 100% { transform: scaleY(1.4); } }
+    @keyframes popIn { 0% { opacity: 0; transform: scale(0.92) translateY(-6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
   </style>
 </head>
 <body>
   <div class="app-container">
-    <!-- Top Bar -->
     <header class="top-bar">
-      <!-- Gemini Style Dropdown Režimů -->
       <button id="modeSelectorBtn" class="mode-selector-btn" aria-haspopup="true" aria-expanded="false">
         <span id="currentModeLabel">Note / idea</span>
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </button>
 
-      <!-- Plovoucí Menu -->
       <div id="modeMenu" class="mode-menu" role="menu">
         <button class="mode-item active" data-mode="inbox" data-label="Note / idea">
           <span>Note / idea</span>
@@ -552,28 +507,17 @@
       </div>
 
       <button id="themeToggle" class="icon-btn theme-toggle" aria-label="Přepnout režim">
-        <svg class="sun-icon" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
-        </svg>
-        <svg class="moon-icon" viewBox="0 0 24 24">
-          <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a7 7 0 1 0 11 11z"></path>
-        </svg>
+        <svg class="sun-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a7 7 0 1 0 11 11z"></path></svg>
       </button>
     </header>
 
-    <!-- Střed: Flat logo brýlí se signálem a náhodný text -->
     <main class="center-hero">
       <svg class="glasses-logo" viewBox="0 0 130 65">
-        <!-- Levé sklo -->
         <circle cx="30" cy="36" r="18" fill="none" stroke="currentColor" stroke-width="4.5"/>
-        <!-- Nosník -->
         <path d="M 48 34 C 54 30, 62 30, 68 34" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/>
-        <!-- Pravé sklo -->
         <circle cx="86" cy="36" r="18" fill="none" stroke="currentColor" stroke-width="4.5"/>
-        <!-- Středový bod v pravém skle -->
         <circle cx="86" cy="36" r="5.5" fill="currentColor"/>
-        <!-- Signálové vlny -->
         <path d="M 92 14 A 24 24 0 0 1 110 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
         <path d="M 97 6 A 33 33 0 0 1 119 28" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
         <path d="M 102 -2 A 42 42 0 0 1 128 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
@@ -581,20 +525,21 @@
       <div class="hero-title" id="greetingText">S čím ti pomohu?</div>
     </main>
 
-    <!-- Plovoucí spodní vstup -->
     <footer class="input-section">
-      <!-- Subtilní semafor -->
+      <!-- Paměťový spouštěč pro Chronicle -->
+      <div id="promptPill" class="prompt-pill" title="Klikni pro další otázku">
+        <span class="prompt-icon">💡</span>
+        <span id="promptText" class="prompt-text"></span>
+      </div>
+
       <div class="status-badge">
         <div id="statusDot" class="status-dot"></div>
         <span id="statusText">Připraveno</span>
       </div>
 
-      <!-- Kapsle -->
       <div class="floating-card">
-        <!-- Řada náhledů příloh -->
         <div id="thumbRow" class="thumbnails-row"></div>
 
-        <!-- Textový mód -->
         <div id="standardInputRow" class="input-row">
           <button id="plusBtn" class="action-btn" aria-label="Přidat přílohu">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -619,7 +564,6 @@
           </button>
         </div>
 
-        <!-- Audio Recording Bar -->
         <div id="audioRecordingRow" class="audio-recording-bar">
           <button id="audioCancelBtn" class="audio-cancel-btn" aria-label="Zrušit nahrávání">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -642,7 +586,6 @@
     </footer>
   </div>
 
-  <!-- Bottom Sheet pro Přílohy -->
   <div id="sheetBackdrop" class="backdrop"></div>
   <div id="bottomSheet" class="bottom-sheet">
     <div class="sheet-handle"></div>
@@ -651,12 +594,10 @@
         <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
         Fotoaparát
       </button>
-
       <button id="photosBtn" class="sheet-btn">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
         Fotky
       </button>
-
       <button id="filesBtn" class="sheet-btn">
         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
         Soubory
@@ -664,7 +605,6 @@
     </div>
   </div>
 
-  <!-- Skryté Inputy pro Přílohy -->
   <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment">
   <input type="file" id="photosInput" class="hidden-input" accept="image/*" multiple>
   <input type="file" id="filesInput" class="hidden-input" accept="*/*" multiple>
@@ -679,15 +619,174 @@
       "Zachyť nápad dřív, než zmizí."
     ];
 
+    // Databáze 180 paměťových spouštěčů pro rodinnou kroniku
+    const MEMORY_PROMPTS = [
+      "Jak voněla babiččina kuchyně, když se peklo o víkendu?",
+      "Jaké bylo tvé úplně první auto a co se na něm poprvé pokazilo?",
+      "Jak vypadal dědův ponk nebo dílna a jaké nářadí tam vonělo?",
+      "Kterou hračku jsi v dětství nedal z ruky?",
+      "Vzpomeneš si na svůj první počítač a jakou hru jsi na něm hrál?",
+      "Jak probíhaly Vánoce u vás doma, když jsi byl malý?",
+      "Jaký byl tvůj největší průšvih ve škole nebo na táboře?",
+      "Které jídlo jsi jako dítě nesnášel a dnes ho máš rád?",
+      "Jak vypadal tvůj dětský pokoj kolem deseti let?",
+      "Co děda nejčastěji vyprávěl o svém mládí nebo vojně?",
+      "Jaká hudební kazeta nebo CD hrálo v tvém prvním přehrávači pořád dokola?",
+      "Kdo byl tvůj nejlepší kamarád na základní škole a co jste vyváděli?",
+      "Který učitel v tobě zanechal největší stopu a proč?",
+      "Jaké byly letní prázdniny na vesnici nebo na chalupě?",
+      "Vzpomeneš si na první den ve své první opravdové práci?",
+      "Jaká rodinná hláška nebo rčení se u vás předává po generace?",
+      "Jak probíhaly rodinné zabijačky, sklizně nebo velké oslavy?",
+      "Jaký byl tvůj první mobilní telefon a jaké vyzvánění jsi měl?",
+      "Které místo z dětství už dnes vypadá úplně jinak?",
+      "Na co byla babička nejvíce pyšná a co ráda dělala?",
+      "Jaké zvíře bylo tvým prvním domácím mazlíčkem?",
+      "Která televizní znělka nebo večerníček ti okamžitě připomene dětství?",
+      "Jak vypadala cesta na letní dovolenou autem bez klimatizace?",
+      "Kdy jsi měl v dětství největší strach a z čeho?",
+      "Jaké oblečení nebo účes jsi nosil v pubertě a dnes se tomu směješ?",
+      "Kterou knihu nebo komiks jsi četl pod peřinou s baterkou?",
+      "Jak voněl les, řeka nebo rybník za vaším domem?",
+      "Jakou manuální dovednost tě naučil táta nebo děda?",
+      "Jaké bylo tvoje oblíbené sladké jídlo od maminky?",
+      "Vzpomeneš si na první zlomeninu, odřené koleno nebo jizvu?",
+      "Kde jste si jako děti stavěli bunkry a z čeho byly?",
+      "Jaké rádio nebo stanice hrála v autě tvých rodičů?",
+      "Který vánoční dárek ti udělal největší radost v životě?",
+      "Jak vypadal typický nedělní oběd u vašich prarodičů?",
+      "Co bylo na střední škole tvým největším symbolem rebelie?",
+      "Jak probíhalo první rande s tvou partnerkou?",
+      "Které řemeslo nebo práci dělali tvoji předkové?",
+      "Jaké bylo tvoje první jízdní kolo a kde jsi s ním padal?",
+      "Jaké rodinné auto mělo pro tebe největší kouzlo?",
+      "Na co se nejvíc těšil táta, když přišel z práce domů?",
+      "Které místo na chalupě bylo tajemné a báli jste se tam chodit?",
+      "Jak probíhaly oslavy Silvestra, když jsi byl malý?",
+      "Která písnička ti vždycky připomene konkrétní léto?",
+      "Co tě babička učila o životě, vztazích nebo vaření?",
+      "Jak vypadalo vaše první společné bydlení po odstěhování od rodičů?",
+      "Kdo byl soused z ulice, který všem dětem bral zakopnuté míče?",
+      "Jaké brigády jsi dělal o prázdninách a co sis za to koupil?",
+      "Který rodinný recept se u vás vaří přesně podle babičky?",
+      "Jaká byla tvoje nejoblíbenější desková hra nebo karty?",
+      "Co děda vyráběl ze dřeva nebo kovu na zahradě?",
+      "Jak vypadal ranní odchod do školy v zimě ve sněhu?",
+      "Který film jsi viděl v kině poprvé bez rodičů?",
+      "Jaké bylo tvoje první setkání s internetem přes vytáčené spojení?",
+      "Který hrad, zámek nebo výlet s rodiči ti utkvěl v paměti?",
+      "Co tě nejvíc překvapilo, když ses poprvé stal tátou?",
+      "Jaké byly tvoje ranní rituály v sobotu před televizí?",
+      "Co byla největší cennost, kterou jsi schovával v plechové krabičce?",
+      "Kterou vůni máš spojenou s domovem svých rodičů?",
+      "Jak probíhaly Velikonoce a pletení pomlázek s tátou?",
+      "Na který okamžik ze sportu nebo závodů nikdy nezapomeneš?",
+      "Jaké bylo tvoje první audio vybavení (walkman, discman, repráky)?",
+      "Které město nebo čtvrť pro tebe znamená pocit domova?",
+      "Jaké bylo nejdelší cestování vlakem nebo autobusem v mládí?",
+      "Co tě v životě naučila první velká prohra nebo neúspěch?",
+      "Jak vypadala kuchyňská linka a nádobí u vás doma v 90. letech?",
+      "Který strom na zahradě nebo v lese byl tvůj oblíbený?",
+      "Jak vypadal den, kdy napadlo tolik sněhu, že nejezdily autobusy?",
+      "Jaké rodinné album fotek jsi si nejraději prohlížel?",
+      "Které boty nebo bunda byly tvůj vysněný kousek v pubertě?",
+      "Co jsi nejraději dělal s mámou, když jste měli čas jen pro sebe?",
+      "Jak probíhala stavba nebo rekonstrukce domu/bytu v rodině?",
+      "Která školní jídelna a které jídlo bylo legendárně hrozné?",
+      "Jaké tajemství jste s bráchou nebo kamarády před rodiči tajili?",
+      "Co byl tvůj největší dětský sen, čím jsi chtěl být?",
+      "Který nástroj nebo stroj v dílně tě fascinoval, ale nesměl jsi na něj sahat?",
+      "Jak probíhaly táboráky, zpívání a spaní pod stanem?",
+      "Jakou nejcennější radu jsi dostal od svého táty?",
+      "Co ti babička schovávala do kapsy, když ses loučil?",
+      "Jak vypadala tvoje první peněženka a kolik v ní bylo?",
+      "Která vůně benzínu, oleje nebo dřeva ti připomíná mládí?",
+      "Jaké bylo tvoje první setkání se skutečnou odpovědností v práci?",
+      "Kdo v rodině byl největší bavič a vyprávěl vtipy?",
+      "Jaké byly nedělní večery před pondělním nástupem do školy?",
+      "Které hřiště, plácek nebo dvůr byl centrem vašeho dětství?",
+      "Jaké oblečení pro tebe babička pletla nebo šila?",
+      "Vzpomeneš si na první řidičák a první samostatnou jízdu?",
+      "Jaká byla nejhorší bouřka nebo krupobití, které jsi zažil?",
+      "Které hračky z pouti nebo tržnice jsi musel mít?",
+      "Jak probíhal první školní den na střední škole?",
+      "Co bylo na dědově zahradě nejchutnější ovoce přímo ze stromu?",
+      "Jak vypadalo vaše rodinné auto zabalené na dovolenou až po střechu?",
+      "Která kazeta se v autě přetáčela tužkou, když došly baterky?",
+      "Jaké zvyky jste měli při štědrovečerní večeři?",
+      "Kdo byl tvůj první idol z plakátu na zdi pokoje?",
+      "Jaké bylo tvoje nejoblíbenější místo pro samotu a přemýšlení?",
+      "Jaký byl největší technický zázrak, který jste si domů pořídili?",
+      "Jak vypadala babiččina spíž plná zavařenin a kompotů?",
+      "Který zápas nebo sportovní událost jste sledovali celá rodina u TV?",
+      "Co tě táta učil opravovat na autě nebo kole?",
+      "Jaké bylo tvoje první zaměstnání a první šéf?",
+      "Jaká byla tvoje nejoblíbenější sladkost, která se už dnes neprodává?",
+      "Kterou pohádku na dobrou noc ti rodiče četli nejčastěji?",
+      "Jaké bylo loučení s kamarády na konci letních prázdnin?",
+      "Která jarní vůně tání sněhu a hlíny ti utkvěla v hlavě?",
+      "Co jsi provedl, za co jsi dostal největší domácí vězení?",
+      "Jak probíhaly rodinné oslavy narozenin a kulatin?",
+      "Jaký byl tvůj první vlastní fotoaparát a jaké fotky na něm byly?",
+      "Jak vypadala vaše první rodinná televize s dálkovým ovladačem?",
+      "Co tě děda naučil o přírodě, počasí nebo houbaření?",
+      "Který lesní úsek nebo kopec jsi znal naprosto nazpaměť?",
+      "Jak vypadal den, kdy jsi poprvé odjel sám na delší dobu z domova?",
+      "Která babiččina buchta nebo koláč byl nepřekonatelný?",
+      "Jaké to bylo, když do rodiny přibyl mladší sourozenec?",
+      "Který školní výlet byl nejdivočejší a co se tam stalo?",
+      "Jaký byl tvůj první velký projekt nebo věc, kterou jsi sám vyrobil?",
+      "Co byla největší nespravedlnost, kterou jsi jako dítě cítil?",
+      "Jak probíhalo koupání v rybníce nebo na starém koupališti?",
+      "Jaká vůně čerstvě posekané trávy nebo sena ti připomíná léto?",
+      "Jaké rituály měl děda předtím, než šel spát nebo ráno vstal?",
+      "Který soused měl na zahradě nejlepší třešně nebo jablka?",
+      "Jaké byly tvoje první hodiny v autoškole?",
+      "Co bylo nejtěžší na odchodu z rodného města?",
+      "Jak probíhala tvoje maturita nebo závěrečné zkoušky?",
+      "Která hospoda nebo klub byl centrem vašich studentských let?",
+      "Jaké to bylo poprvé držet v náručí svého vlastního syna?",
+      "Který kus nábytku v bytě rodičů pamatoval ještě prarodiče?",
+      "Jak vypadaly letní bouřky na verandě nebo pod střechou chalupy?",
+      "Co byla nejodvážnější věc, kterou jsi v mládí udělal?",
+      "Který spolužák ze školy tě nejvíc rozesmával?",
+      "Jak jste doma slavili Mikuláše a báli jste se čerta?",
+      "Jaké bylo tvoje první setkání s 3D tiskem nebo novou technologií?",
+      "Kterou starou rodinnou fotografii máš nejraději a kdo na ní je?",
+      "Jak voněla garáž, sklep nebo půda u vašich prarodičů?",
+      "Co pro tebe znamenala první vlastní výplata na účtu?",
+      "Který film nebo seriál v 90. letech jste nesměli prošvihnout?",
+      "Jaké boty ti táta čistil nebo krémoval před odchodem do kostela/školy?",
+      "Jak vypadal tvůj stůl, když ses učil na zkoušky?",
+      "Kdo byl nejstarší člověk, se kterým jsi v dětství mluvil a co vyprávěl?",
+      "Jak probíhaly první dny po přestěhování do nového domova?",
+      "Kterou písničku si broukal táta nebo máma při práci?",
+      "Co bylo na dědově půdě největší poklad, který jste objevili?",
+      "Jaké to bylo, když jste poprvé měli doma barevnou televizi?",
+      "Které jídlo ti maminka vařila, když jsi byl nemocný v posteli?",
+      "Jaký byl tvůj nejoblíbenější kabát nebo bunda do deště?",
+      "Co jsi nejraději dělal o samotě v lese nebo na poli?",
+      "Jak probíhala první samostatná rekonstrukce nebo oprava v bytě?",
+      "Který hudební nástroj jsi zkoušel hrát a jak to dopadlo?",
+      "Jaké bylo tvoje nejoblíbenější místo v Pardubicích nebo Znojmě?",
+      "Co byla největší oběť, kterou pro tebe tvoji rodiče udělali?",
+      "Jak vypadala vaše první rodinná oslava ve vlastním domě?",
+      "Kterou vlastnost jsi stoprocentně podědil po dědovi nebo tátovi?",
+      "Jaké byly zimní večery, když vypadl proud a svítilo se svíčkami?",
+      "Co tě nejvíc dojalo v posledních letech, když jsi vzpomínal na rodinu?",
+      "Jaké hodnoty bys chtěl, aby si tvůj syn jednou pamatoval od tebe?"
+    ];
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js');
     }
 
-    // DOM Prvky
     const modeSelectorBtn = document.getElementById('modeSelectorBtn');
     const currentModeLabel = document.getElementById('currentModeLabel');
     const modeMenu = document.getElementById('modeMenu');
     const modeItems = document.querySelectorAll('.mode-item');
+    const promptPill = document.getElementById('promptPill');
+    const promptText = document.getElementById('promptText');
 
     const themeToggleBtn = document.getElementById('themeToggle');
     const themeColorMeta = document.getElementById('themeColorMeta');
@@ -708,7 +807,6 @@
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
 
-    // Audio DOM
     const standardInputRow = document.getElementById('standardInputRow');
     const audioRecordingRow = document.getElementById('audioRecordingRow');
     const audioCancelBtn = document.getElementById('audioCancelBtn');
@@ -722,23 +820,35 @@
     let audioSeconds = 0;
     let micStream = null;
 
-    // VŽDY VÝCHOZÍ REŽIM: Note / idea (inbox)
     let currentMode = 'inbox';
+
+    function getRandomPrompt() {
+      const idx = Math.floor(Math.random() * MEMORY_PROMPTS.length);
+      return MEMORY_PROMPTS[idx];
+    }
 
     function setMode(modeValue, labelText) {
       currentMode = modeValue;
       currentModeLabel.innerText = labelText;
 
       modeItems.forEach(item => {
-        if (item.dataset.mode === modeValue) {
-          item.classList.add('active');
-        } else {
-          item.classList.remove('active');
-        }
+        if (item.dataset.mode === modeValue) item.classList.add('active');
+        else item.classList.remove('active');
       });
+
+      // Zobrazení paměťového spouštěče pouze pro Chronicle
+      if (modeValue === 'chronicle') {
+        promptText.innerText = getRandomPrompt();
+        promptPill.style.display = 'flex';
+      } else {
+        promptPill.style.display = 'none';
+      }
     }
 
-    // Natvrdo inicializovat na Note / idea při každém spuštění / reloadu
+    promptPill.addEventListener('click', () => {
+      promptText.innerText = getRandomPrompt();
+    });
+
     setMode('inbox', 'Note / idea');
 
     modeSelectorBtn.addEventListener('click', (e) => {
@@ -755,7 +865,6 @@
       });
     });
 
-    // Zavření menu při kliknutí mimo
     document.addEventListener('click', (e) => {
       if (!modeSelectorBtn.contains(e.target) && !modeMenu.contains(e.target)) {
         modeMenu.classList.remove('open');
@@ -763,14 +872,12 @@
       }
     });
 
-    // Nastavení náhodné hlášky při startu
     function initGreeting() {
       const randomIndex = Math.floor(Math.random() * GREETINGS.length);
       greetingTextEl.innerText = GREETINGS[randomIndex];
     }
     initGreeting();
 
-    // Téma
     let currentTheme = localStorage.getItem(THEME_KEY) || 'dark';
     function applyTheme(theme) {
       currentTheme = theme === 'dark' ? 'dark' : 'light';
@@ -781,35 +888,23 @@
     applyTheme(currentTheme);
     themeToggleBtn.addEventListener('click', () => applyTheme(currentTheme === 'dark' ? 'light' : 'dark'));
 
-    // Dynamické zvětšování textarea
     txtInput.addEventListener('input', () => {
       txtInput.style.height = 'auto';
       txtInput.style.height = Math.min(txtInput.scrollHeight, 210) + 'px';
     });
 
-    // Enter klávesa -> pouze nový řádek
     txtInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.stopPropagation();
-      }
+      if (e.key === 'Enter') e.stopPropagation();
     });
 
-    // Semafor a Status
     function setStatus(msg, state = 'ready') {
       statusText.innerText = msg;
       statusDot.className = 'status-dot';
       if (state !== 'ready') statusDot.classList.add(state);
     }
 
-    // Modal Bottom Sheet pro Přílohy
-    function openSheet() {
-      sheetBackdrop.classList.add('open');
-      bottomSheet.classList.add('open');
-    }
-    function closeSheet() {
-      sheetBackdrop.classList.remove('open');
-      bottomSheet.classList.remove('open');
-    }
+    function openSheet() { sheetBackdrop.classList.add('open'); bottomSheet.classList.add('open'); }
+    function closeSheet() { sheetBackdrop.classList.remove('open'); bottomSheet.classList.remove('open'); }
 
     plusBtn.addEventListener('click', openSheet);
     sheetBackdrop.addEventListener('click', closeSheet);
@@ -818,7 +913,6 @@
     photosBtn.addEventListener('click', () => { closeSheet(); photosInput.click(); });
     filesBtn.addEventListener('click', () => { closeSheet(); filesInput.click(); });
 
-    // Zpracování výběru souborů
     cameraInput.addEventListener('change', () => handleFiles(cameraInput.files));
     photosInput.addEventListener('change', () => handleFiles(photosInput.files));
     filesInput.addEventListener('change', () => handleFiles(filesInput.files));
@@ -882,7 +976,6 @@
       });
     }
 
-    // Audio nahrávání
     micBtn.addEventListener('click', startAudioRecording);
     audioCancelBtn.addEventListener('click', cancelAudioRecording);
     audioConfirmBtn.addEventListener('click', confirmAudioRecording);
@@ -955,7 +1048,6 @@
       if (micStream) micStream.getTracks().forEach(t => t.stop());
     }
 
-    // Odeslání zprávy (včetně vybraného režimu)
     sendBtn.addEventListener('click', submitNote);
 
     function submitNote() {
@@ -964,7 +1056,7 @@
 
       const payload = {
         token: PWA_SECRET_TOKEN,
-        mode: currentMode, // 'inbox' | 'harvest' | 'chronicle'
+        mode: currentMode,
         text: textVal,
         files: attachedFiles.map(f => ({
           fileName: f.fileName,
@@ -978,6 +1070,10 @@
       attachedFiles = [];
       renderThumbnails();
       setStatus('Uloženo', 'ready');
+
+      if (currentMode === 'chronicle') {
+        promptText.innerText = getRandomPrompt();
+      }
 
       const body = JSON.stringify(payload);
       const options = { method: 'POST', body: body };
