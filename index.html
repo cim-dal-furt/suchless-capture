@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f8ff" id="themeColorMeta">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="app-icon.svg" type="image/svg+xml">
-  <title>SUCHLESS Capture</title>
+  <title>SUCHLESS Capture Studio</title>
   <style>
     :root {
       --bg: #f5f8ff;
@@ -197,7 +197,6 @@
       width: 100%;
     }
 
-    /* Oblast 1: Hero Header */
     .sheet-hero {
       padding: 18px 16px;
       position: relative;
@@ -241,7 +240,6 @@
       color: #eeeeee;
     }
 
-    /* Oblast 2: Info Pill */
     .info-pill {
       display: flex;
       align-items: center;
@@ -264,7 +262,6 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
     }
 
-    /* Oblast 3: Overview Grid */
     .overview-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -302,7 +299,6 @@
       line-height: 1.15;
     }
 
-    /* Oblast 4: Hlavní karta s polem a tlačítky */
     .sheet-content {
       display: flex;
       flex-direction: column;
@@ -381,7 +377,108 @@
       display: none;
     }
 
-    /* Dolní ovládací lišta tlačítek */
+    /* PŘESUNUTO: Stavová lišta a semafor mezi polem a tlačítky */
+    .bottom-status-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 0 0 auto;
+      padding: 2px 4px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: var(--text-soft);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      width: fit-content;
+    }
+
+    .status-chip::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      transition: background-color 200ms ease;
+    }
+
+    .status-chip.ready::before,
+    .status-chip.success::before {
+      background: #22c55e;
+    }
+
+    .status-chip.busy::before {
+      background: #0284c7;
+    }
+
+    .status-chip.recording::before {
+      background: #f97316;
+    }
+
+    .status-chip.error::before {
+      background: #ef4444;
+    }
+
+    body[data-theme="dark"] .status-chip {
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      box-shadow: none;
+    }
+
+    body[data-theme="dark"] .status-chip.busy::before {
+      background: #38bdf8;
+    }
+
+    .status-line {
+      height: 4px;
+      border-radius: 999px;
+      background: #e6eefb;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .status-line::after {
+      content: "";
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: transparent;
+      transition: width 220ms ease, background-color 220ms ease;
+    }
+
+    body[data-state="busy"] .status-line::after {
+      width: 30%;
+      animation: indeterminate 1.35s linear infinite;
+    }
+
+    body[data-state="recording"] .status-line::after {
+      width: 70%;
+      background: linear-gradient(90deg, #f2994a, #d7633f);
+      animation: breathe 1.1s ease-in-out infinite;
+    }
+
+    body[data-state="success"] .status-line::after {
+      width: 100%;
+      background: linear-gradient(90deg, #5ccf8a, #2aa864);
+    }
+
+    body[data-state="error"] .status-line::after {
+      width: 100%;
+      background: linear-gradient(90deg, #eb8d8d, #d84f4f);
+    }
+
     .controls-row {
       display: flex;
       align-items: center;
@@ -404,12 +501,31 @@
       cursor: pointer;
       box-shadow: 0 6px 12px rgba(31, 84, 133, 0.06);
       transition: transform 120ms ease, filter 120ms ease, background-color 120ms ease;
+      position: relative;
     }
 
     .btn-file-yellow {
       background: var(--orange-soft);
       border-color: var(--orange-border);
       color: var(--orange-text);
+    }
+
+    .file-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #d97706;
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--card);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
     }
 
     .btn-save-blue {
@@ -473,108 +589,6 @@
       filter: brightness(0.95);
     }
 
-    /* Dolní stavová lišta s decentním textem a semaforovým puntíkem */
-    .bottom-status-container {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 0 0 auto;
-    }
-
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 2px 0;
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      color: var(--text-soft);
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      white-space: nowrap;
-      width: fit-content;
-    }
-
-    .status-chip::before {
-      content: "";
-      display: inline-block;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #22c55e;
-      transition: background-color 200ms ease;
-    }
-
-    /* Semaforová indikace barvy puntíku podle stavu */
-    .status-chip.ready::before,
-    .status-chip.success::before {
-      background: #22c55e; /* Zelená */
-    }
-
-    .status-chip.busy::before {
-      background: #0284c7; /* Modrá (pracuje / ukládá) */
-    }
-
-    .status-chip.recording::before {
-      background: #f97316; /* Oranžová / Žlutá (nahrává) */
-    }
-
-    .status-chip.error::before {
-      background: #ef4444; /* Červená (chyba) */
-    }
-
-    body[data-theme="dark"] .status-chip {
-      background: transparent;
-      color: #94a3b8;
-      border: none;
-      box-shadow: none;
-    }
-
-    body[data-theme="dark"] .status-chip.busy::before {
-      background: #38bdf8;
-    }
-
-    .status-line {
-      height: 4px;
-      border-radius: 999px;
-      background: #e6eefb;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .status-line::after {
-      content: "";
-      display: block;
-      height: 100%;
-      width: 0;
-      border-radius: inherit;
-      background: transparent;
-      transition: width 220ms ease, background-color 220ms ease;
-    }
-
-    body[data-state="busy"] .status-line::after {
-      width: 30%;
-      animation: indeterminate 1.35s linear infinite;
-    }
-
-    body[data-state="recording"] .status-line::after {
-      width: 70%;
-      background: linear-gradient(90deg, #f2994a, #d7633f);
-      animation: breathe 1.1s ease-in-out infinite;
-    }
-
-    body[data-state="success"] .status-line::after {
-      width: 100%;
-      background: linear-gradient(90deg, #5ccf8a, #2aa864);
-    }
-
-    body[data-state="error"] .status-line::after {
-      width: 100%;
-      background: linear-gradient(90deg, #eb8d8d, #d84f4f);
-    }
-
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.74; }
@@ -619,16 +633,13 @@
     <div id="closeBtn" class="close-overlay" aria-label="Zavřít aplikaci"></div>
 
     <div class="app-main">
-      <!-- Oblast 1: Hero Header -->
       <div class="sheet-hero">
         <div class="hero-title">SUCHLESS <span class="hero-title-small">Capture Studio</span></div>
         <div class="hero-sub">Rychle zachyť nápad dřív, než zmizí.</div>
       </div>
 
-      <!-- Oblast 2: Info Pill -->
       <div class="info-pill">Pracuj s poznámkami, hlasem i soubory na jednom místě</div>
 
-      <!-- Oblast 3: Overview Grid -->
       <div class="overview-grid" aria-hidden="true">
         <div class="mini-card">
           <h3>Poznámky</h3>
@@ -640,14 +651,20 @@
         </div>
       </div>
 
-      <!-- Oblast 4: Hlavní karta s polem a tlačítky -->
       <div class="sheet-content">
         <div class="shine-border">
           <textarea id="txt" placeholder="Napiš nápad, úkol nebo stručnou poznámku..."></textarea>
         </div>
 
+        <!-- Přesunuto: Stav a ukazatel postupu -->
+        <div class="bottom-status-container">
+          <div id="statusChip" class="status-chip ready">Připraveno</div>
+          <div class="status-line"></div>
+        </div>
+
         <div class="controls-row">
           <button id="fileBtn" class="btn-rect btn-file-yellow" aria-label="Nahrát soubor">
+            <span id="fileBadge" class="file-badge">0</span>
             <svg viewBox="0 0 24 24">
               <path d="M12 16V5"></path>
               <path d="M8 9l4-4 4 4"></path>
@@ -671,11 +688,6 @@
             </svg>
           </button>
         </div>
-
-        <div class="bottom-status-container">
-          <div id="statusChip" class="status-chip ready">Připraveno</div>
-          <div class="status-line"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -695,14 +707,17 @@
     const closeBtnEl = document.getElementById('closeBtn');
     const recBtnEl = document.getElementById('recBtn');
     const fileBtnEl = document.getElementById('fileBtn');
+    const fileBadgeEl = document.getElementById('fileBadge');
     const fileInputEl = document.getElementById('file');
     const saveBtnEl = document.getElementById('saveBtn');
+    const txtEl = document.getElementById('txt');
 
     let isRec = false;
     let audioTimer = null, audioSeconds = 0;
     let mediaRecorder = null;
     let audioChunks = [];
     let micStream = null;
+    let attachedFiles = []; // Fronta příloh (max 5)
     let currentTheme = localStorage.getItem(THEME_KEY) || 'light';
 
     function applyTheme(theme) {
@@ -722,16 +737,52 @@
       applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
     });
 
-    closeBtnEl.addEventListener('click', requestCloseApp);
-    recBtnEl.addEventListener('click', toggleAudio);
-    fileBtnEl.addEventListener('click', () => fileInputEl.click());
-    fileInputEl.addEventListener('change', () => {
-      if (fileInputEl.files.length > 0) {
-        sendFile(fileInputEl.files[0]);
-      }
+    closeBtnEl.addEventListener('click', () => {
+      window.close();
+      setTimeout(() => {
+        if (!document.hidden && window.history.length > 1) window.history.back();
+      }, 120);
     });
 
-    saveBtnEl.addEventListener('click', sendText);
+    recBtnEl.addEventListener('click', toggleAudio);
+    fileBtnEl.addEventListener('click', () => fileInputEl.click());
+
+    fileInputEl.addEventListener('change', () => {
+      if (!fileInputEl.files || fileInputEl.files.length === 0) return;
+      const file = fileInputEl.files[0];
+
+      if (attachedFiles.length >= 5) {
+        setStatus('Dosažen limit max 5 souborů', 'error');
+        fileInputEl.value = '';
+        return;
+      }
+
+      setStatus('Načítám soubor do paměti...', 'busy');
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result.split(',')[1];
+        attachedFiles.push({
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          base64: base64
+        });
+        fileInputEl.value = '';
+        updateFileBadge();
+        setStatus(`Připojeno souborů: ${attachedFiles.length}/5`, 'ready');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    saveBtnEl.addEventListener('click', sendCombinedNote);
+
+    function updateFileBadge() {
+      if (attachedFiles.length > 0) {
+        fileBadgeEl.innerText = attachedFiles.length;
+        fileBadgeEl.style.display = 'flex';
+      } else {
+        fileBadgeEl.style.display = 'none';
+      }
+    }
 
     function setStatus(msg, state = 'ready') {
       document.body.setAttribute('data-state', state);
@@ -758,46 +809,38 @@
 
     async function sendPayload(payload) {
       const body = JSON.stringify(payload);
-      const options = {
-        method: 'POST',
-        body: body
-      };
-
-      if (body.length < 64000) {
-        options.keepalive = true;
-      }
-
+      const options = { method: 'POST', body: body };
+      if (body.length < 64000) options.keepalive = true;
       return fetch(GAS_API_URL, options);
     }
 
     function onUploadSuccess(message) {
       setStatus(message || 'Uloženo', 'success');
-      fileInputEl.value = '';
-
       setTimeout(() => {
-        requestCloseApp();
-      }, 900);
+        setStatus('Připraveno', 'ready');
+      }, 2000);
     }
 
-    function requestCloseApp() {
-      window.close();
-      setTimeout(() => {
-        if (document.hidden) return;
-        if (window.history.length > 1) {
-          window.history.back();
-          return;
-        }
-        window.location.href = 'about:blank';
-      }, 120);
-    }
+    function sendCombinedNote() {
+      const textVal = txtEl.value.trim();
+      if (!textVal && attachedFiles.length === 0) return;
 
-    function sendText() {
-      const val = document.getElementById('txt').value.trim();
-      if (!val) return;
-      document.getElementById('txt').value = '';
-      const blob = new Blob([val], { type: 'text/markdown' });
-      const fileName = `text_${getFormattedDateTime()}.md`;
-      postData(blob, fileName, 'text/markdown');
+      const payload = {
+        token: PWA_SECRET_TOKEN,
+        text: textVal,
+        files: [...attachedFiles]
+      };
+
+      // Reset stavu bez zavření aplikace
+      txtEl.value = '';
+      attachedFiles = [];
+      updateFileBadge();
+
+      onUploadSuccess('Uloženo');
+
+      sendPayload(payload).catch((err) => {
+        console.error("Chyba přenosu na pozadí:", err);
+      });
     }
 
     async function toggleAudio() {
@@ -818,7 +861,31 @@
           mediaRecorder.onstop = () => {
             const webmBlob = new Blob(audioChunks, { type: mimeType });
             const fileName = `audio_${getFormattedDateTime()}.webm`;
-            postData(webmBlob, fileName, mimeType);
+            const textVal = txtEl.value.trim();
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result.split(',')[1];
+              const payload = {
+                token: PWA_SECRET_TOKEN,
+                text: textVal,
+                files: [
+                  ...attachedFiles,
+                  { fileName, mimeType, base64 }
+                ]
+              };
+
+              txtEl.value = '';
+              attachedFiles = [];
+              updateFileBadge();
+
+              onUploadSuccess('Uloženo');
+
+              sendPayload(payload).catch((err) => {
+                console.error("Chyba přenosu na pozadí:", err);
+              });
+            };
+            reader.readAsDataURL(webmBlob);
           };
 
           mediaRecorder.start();
@@ -843,31 +910,6 @@
         recBtnEl.classList.remove('rec');
         setStatus('Zpracovávám...', 'busy');
       }
-    }
-
-    function sendFile(f) {
-      if (!f) return;
-      postData(f, f.name, f.type || 'application/octet-stream');
-    }
-
-    function postData(blob, fileName, mimeType) {
-      const reader = new FileReader();
-      reader.onloadend = function () {
-        const base64 = reader.result.split(',')[1];
-        const payload = {
-          token: PWA_SECRET_TOKEN,
-          base64,
-          fileName,
-          mimeType
-        };
-
-        onUploadSuccess('Uloženo');
-
-        sendPayload(payload).catch((err) => {
-          console.error("Chyba přenosu na pozadí:", err);
-        });
-      };
-      reader.readAsDataURL(blob);
     }
 
     window.addEventListener('load', () => {
