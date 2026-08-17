@@ -505,6 +505,95 @@
     .sheet-btn svg { width: 24px; height: 24px; stroke: var(--primary); fill: none; stroke-width: 2; }
     .hidden-input { display: none; }
 
+    /* ---- Vlastní foťák (getUserMedia overlay) ---- */
+    .camera-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 150ms ease;
+    }
+
+    .camera-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .camera-video-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .camera-close-btn {
+      position: absolute;
+      top: calc(14px + env(safe-area-inset-top));
+      left: 14px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      z-index: 5;
+      cursor: pointer;
+    }
+
+    .camera-close-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
+
+    .camera-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 0 calc(24px + env(safe-area-inset-bottom));
+      background: #000;
+    }
+
+    .camera-shutter-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #fff;
+      border: 4px solid rgba(255, 255, 255, 0.35);
+      cursor: pointer;
+      transition: transform 100ms ease;
+    }
+
+    .camera-shutter-btn:active { transform: scale(0.9); }
+
+    .camera-status-text {
+      position: absolute;
+      top: calc(14px + env(safe-area-inset-top));
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 500;
+      opacity: 0.85;
+      z-index: 4;
+    }
+
     @keyframes wave-pulse { 0% { transform: scaleY(0.4); } 100% { transform: scaleY(1.4); } }
     @keyframes popIn { 0% { opacity: 0; transform: scale(0.92) translateY(-6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
   </style>
@@ -633,8 +722,21 @@
     </div>
   </div>
 
-  <!-- <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment"> -->
-  <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture>
+  <!-- Vlastní foťák: video preview + shutter tlačítko. Nahrazuje native <input capture>, -->
+  <!-- ktery na Androidu zpusoboval memory-kill WebView procesu pri delsim pobytu na pozadi. -->
+  <div id="cameraOverlay" class="camera-overlay">
+    <div class="camera-video-wrap">
+      <div id="cameraStatusText" class="camera-status-text"></div>
+      <button id="cameraCloseBtn" class="camera-close-btn" aria-label="Zavřít foťák">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <video id="cameraVideo" autoplay playsinline muted></video>
+    </div>
+    <div class="camera-controls">
+      <button id="cameraShutterBtn" class="camera-shutter-btn" aria-label="Vyfotit"></button>
+    </div>
+  </div>
+
   <input type="file" id="photosInput" class="hidden-input" accept="image/*" multiple>
   <input type="file" id="filesInput" class="hidden-input" accept="*/*" multiple>
 
@@ -828,7 +930,6 @@
     const cameraBtn = document.getElementById('cameraBtn');
     const photosBtn = document.getElementById('photosBtn');
     const filesBtn = document.getElementById('filesBtn');
-    const cameraInput = document.getElementById('cameraInput');
     const photosInput = document.getElementById('photosInput');
     const filesInput = document.getElementById('filesInput');
     const thumbRow = document.getElementById('thumbRow');
@@ -841,12 +942,20 @@
     const audioConfirmBtn = document.getElementById('audioConfirmBtn');
     const audioTimerText = document.getElementById('audioTimerText');
 
+    // Vlastní foťák - reference na DOM
+    const cameraOverlay = document.getElementById('cameraOverlay');
+    const cameraVideo = document.getElementById('cameraVideo');
+    const cameraCloseBtn = document.getElementById('cameraCloseBtn');
+    const cameraShutterBtn = document.getElementById('cameraShutterBtn');
+    const cameraStatusText = document.getElementById('cameraStatusText');
+
     let attachedFiles = [];
     let mediaRecorder = null;
     let audioChunks = [];
     let audioTimer = null;
     let audioSeconds = 0;
     let micStream = null;
+    let cameraStream = null;
 
     let currentMode = 'inbox';
 
@@ -938,112 +1047,189 @@
     plusBtn.addEventListener('click', openSheet);
     sheetBackdrop.addEventListener('click', closeSheet);
 
-    cameraBtn.addEventListener('click', () => { closeSheet(); cameraInput.click(); });
+    // Fotoaparát teď otevírá vlastní overlay místo systémového foťáku
+    cameraBtn.addEventListener('click', () => { closeSheet(); openCameraOverlay(); });
     photosBtn.addEventListener('click', () => { closeSheet(); photosInput.click(); });
     filesBtn.addEventListener('click', () => { closeSheet(); filesInput.click(); });
 
-    cameraInput.addEventListener('change', () => handleFiles(cameraInput.files));
     photosInput.addEventListener('change', () => handleFiles(photosInput.files));
     filesInput.addEventListener('change', () => handleFiles(filesInput.files));
 
-    const MAX_DIMENSION = 1600;   // max šířka/výška v px – uprav dle potřeby
-const JPEG_QUALITY = 0.72;    // 0.7–0.8 je sladký bod kvalita/velikost
+    // ---- Vlastní foťák: getUserMedia logika ----
 
-function compressImage(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const reader = new FileReader();
+    async function openCameraOverlay() {
+      cameraStatusText.innerText = '';
+      cameraOverlay.classList.add('open');
 
-    reader.onerror = () => reject(new Error('Chyba čtení souboru'));
-    img.onerror = () => reject(new Error('Chyba dekódování obrázku'));
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        });
+        cameraVideo.srcObject = cameraStream;
+      } catch (err) {
+        console.error('Kamera nedostupná:', err);
+        cameraStatusText.innerText = 'Kamera nedostupná – zkontroluj oprávnění';
+        setStatus('Kamera nedostupná', 'error');
+      }
+    }
 
-    reader.onload = (e) => {
-      img.onload = () => {
-        let { width, height } = img;
+    function closeCameraOverlay() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      cameraVideo.srcObject = null;
+      cameraOverlay.classList.remove('open');
+    }
 
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-          if (width > height) {
-            height = Math.round(height * (MAX_DIMENSION / width));
-            width = MAX_DIMENSION;
-          } else {
-            width = Math.round(width * (MAX_DIMENSION / height));
-            height = MAX_DIMENSION;
-          }
+    cameraCloseBtn.addEventListener('click', closeCameraOverlay);
+
+    cameraShutterBtn.addEventListener('click', () => {
+      if (!cameraStream || !cameraVideo.videoWidth) {
+        setStatus('Kamera ještě není připravená', 'error');
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = cameraVideo.videoWidth;
+      canvas.height = cameraVideo.videoHeight;
+      canvas.getContext('2d').drawImage(cameraVideo, 0, 0);
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setStatus('Chyba při snímání fotky', 'error');
+          return;
+        }
+        const fileName = `photo_${Date.now()}.jpg`;
+        closeCameraOverlay();
+        processImageBlob(blob, fileName);
+      }, 'image/jpeg', 0.92);
+    });
+
+    // ---- Komprese obrázků (canvas resize + JPEG re-encode) ----
+
+    const MAX_DIMENSION = 1600;   // max šířka/výška v px
+    const JPEG_QUALITY = 0.72;    // 0.7–0.8 je sladký bod kvalita/velikost
+
+    function compressImage(fileOrBlob) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onerror = () => reject(new Error('Chyba čtení souboru'));
+        img.onerror = () => reject(new Error('Chyba dekódování obrázku'));
+
+        reader.onload = (e) => {
+          img.onload = () => {
+            let { width, height } = img;
+
+            if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+              if (width > height) {
+                height = Math.round(height * (MAX_DIMENSION / width));
+                width = MAX_DIMENSION;
+              } else {
+                width = Math.round(width * (MAX_DIMENSION / height));
+                height = MAX_DIMENSION;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              if (!blob) { reject(new Error('toBlob selhal')); return; }
+              const compressedReader = new FileReader();
+              compressedReader.onerror = () => reject(new Error('Chyba čtení komprimovaného blobu'));
+              compressedReader.onloadend = () => {
+                resolve({
+                  base64: compressedReader.result.split(',')[1],
+                  previewUrl: compressedReader.result,
+                  mimeType: 'image/jpeg'
+                });
+              };
+              compressedReader.readAsDataURL(blob);
+            }, 'image/jpeg', JPEG_QUALITY);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(fileOrBlob);
+      });
+    }
+
+    // Zpracování fotky pořízené vlastním foťákem (Blob, ne File)
+    function processImageBlob(blob, fileName) {
+      setStatus('Zpracovávám foto...', 'busy');
+      compressImage(blob)
+        .then((compressed) => {
+          attachedFiles.push({
+            fileName: fileName.replace(/\.[^.]+$/, '.jpg'),
+            mimeType: compressed.mimeType,
+            base64: compressed.base64,
+            previewUrl: compressed.previewUrl
+          });
+          renderThumbnails();
+          setStatus('Foto připojeno', 'ready');
+        })
+        .catch((err) => {
+          console.error('Komprese selhala:', err);
+          setStatus('Chyba zpracování fotky', 'error');
+        });
+    }
+
+    // Zpracování souborů z galerie / správce souborů
+    function handleFiles(filesList) {
+      if (!filesList || filesList.length === 0) return;
+
+      Array.from(filesList).forEach((file) => {
+        if (attachedFiles.length >= 5) {
+          setStatus('Max 5 příloh', 'error');
+          return;
         }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
+        const isImg = file.type.startsWith('image/');
 
-        canvas.toBlob((blob) => {
-          if (!blob) { reject(new Error('toBlob selhal')); return; }
-          const compressedReader = new FileReader();
-          compressedReader.onerror = () => reject(new Error('Chyba čtení komprimovaného blobu'));
-          compressedReader.onloadend = () => {
-            resolve({
-              base64: compressedReader.result.split(',')[1],
-              previewUrl: compressedReader.result,
-              mimeType: 'image/jpeg'
+        if (isImg) {
+          setStatus('Zpracovávám foto...', 'busy');
+          compressImage(file)
+            .then((compressed) => {
+              attachedFiles.push({
+                fileName: file.name.replace(/\.[^.]+$/, '.jpg'),
+                mimeType: compressed.mimeType,
+                base64: compressed.base64,
+                previewUrl: compressed.previewUrl
+              });
+              renderThumbnails();
+              setStatus('Foto připojeno', 'ready');
+            })
+            .catch((err) => {
+              console.error('Komprese selhala:', err);
+              setStatus('Chyba zpracování fotky', 'error');
             });
-          };
-          compressedReader.readAsDataURL(blob);
-        }, 'image/jpeg', JPEG_QUALITY);
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function handleFiles(filesList) {
-  if (!filesList || filesList.length === 0) return;
-
-  Array.from(filesList).forEach((file) => {
-    if (attachedFiles.length >= 5) {
-      setStatus('Max 5 příloh', 'error');
-      return;
-    }
-
-    const isImg = file.type.startsWith('image/');
-
-    if (isImg) {
-      // Necháme WebView "vydechnout" po návratu z foťáku, než spustíme těžký výpočet
-      setTimeout(() => {
-        compressImage(file)
-          .then((compressed) => {
+        } else {
+          const reader = new FileReader();
+          reader.onerror = () => setStatus('Chyba čtení souboru', 'error');
+          reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
             attachedFiles.push({
-              fileName: file.name.replace(/\.[^.]+$/, '.jpg'),
-              mimeType: compressed.mimeType,
-              base64: compressed.base64,
-              previewUrl: compressed.previewUrl
+              fileName: file.name,
+              mimeType: file.type || 'application/octet-stream',
+              base64: base64,
+              previewUrl: null
             });
             renderThumbnails();
-            setStatus('Foto připojeno', 'ready');
-          })
-          .catch((err) => {
-            console.error('Komprese selhala:', err);
-            setStatus('Chyba zpracování fotky', 'error');
-          });
-      }, 100);
-    } else {
-      const reader = new FileReader();
-      reader.onerror = () => setStatus('Chyba čtení souboru', 'error');
-      reader.onloadend = () => {
-        const base64 = reader.result.split(',')[1];
-        attachedFiles.push({
-          fileName: file.name,
-          mimeType: file.type || 'application/octet-stream',
-          base64: base64,
-          previewUrl: null
-        });
-        renderThumbnails();
-      };
-      reader.readAsDataURL(file);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
     }
-  });
-}
 
     function renderThumbnails() {
       thumbRow.innerHTML = '';
