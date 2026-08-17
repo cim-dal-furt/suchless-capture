@@ -503,10 +503,7 @@
 
     .sheet-btn:active { transform: scale(0.95); }
     .sheet-btn svg { width: 24px; height: 24px; stroke: var(--primary); fill: none; stroke-width: 2; }
-
-    .hidden-input {
-      display: none;
-    }
+    .hidden-input { display: none; }
 
     @keyframes wave-pulse { 0% { transform: scaleY(0.4); } 100% { transform: scaleY(1.4); } }
     @keyframes popIn { 0% { opacity: 0; transform: scale(0.92) translateY(-6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
@@ -514,6 +511,7 @@
 </head>
 <body>
   <div class="app-container">
+    <!-- Tečkované pozadí s vertikální maskou -->
     <div class="bg-dots-masked"></div>
 
     <header class="top-bar">
@@ -635,8 +633,8 @@
     </div>
   </div>
 
-  <!-- Skryté inputy: Fotoaparát má přímé capture="environment" -->
-  <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment">
+  <!-- <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment"> -->
+  <input type="file" id="cameraInput" class="hidden-input" accept="image/*">
   <input type="file" id="photosInput" class="hidden-input" accept="image/*" multiple>
   <input type="file" id="filesInput" class="hidden-input" accept="*/*" multiple>
 
@@ -940,23 +938,15 @@
     plusBtn.addEventListener('click', openSheet);
     sheetBackdrop.addEventListener('click', closeSheet);
 
-    cameraBtn.addEventListener('click', () => {
-      closeSheet();
-      cameraInput.click();
-    });
+    cameraBtn.addEventListener('click', () => { closeSheet(); cameraInput.click(); });
+    photosBtn.addEventListener('click', () => { closeSheet(); photosInput.click(); });
+    filesBtn.addEventListener('click', () => { closeSheet(); filesInput.click(); });
 
-    photosBtn.addEventListener('click', () => {
-      closeSheet();
-      photosInput.click();
-    });
+    cameraInput.addEventListener('change', () => handleFiles(cameraInput.files));
+    photosInput.addEventListener('change', () => handleFiles(photosInput.files));
+    filesInput.addEventListener('change', () => handleFiles(filesInput.files));
 
-    filesBtn.addEventListener('click', () => {
-      closeSheet();
-      filesInput.click();
-    });
-
-    // Univerzální a robustní zpracování souborů přes FileReader
-    function handleFileSelection(filesList, isCamera = false) {
+    function handleFiles(filesList) {
       if (!filesList || filesList.length === 0) return;
 
       Array.from(filesList).forEach(file => {
@@ -966,54 +956,22 @@
         }
 
         const reader = new FileReader();
-        reader.onload = function(evt) {
-          const dataUrl = evt.target.result;
-          if (!dataUrl) return;
-
-          const base64 = dataUrl.indexOf(',') > -1 ? dataUrl.split(',')[1] : dataUrl;
+        reader.onloadend = () => {
+          const base64 = reader.result.split(',')[1];
+          const isImg = file.type.startsWith('image/');
           
-          let fileName = file.name || '';
-          if (!fileName || fileName === 'image.jpg' || isCamera) {
-            fileName = `foto_${Date.now()}.jpg`;
-          }
-
-          // Pokud jde o kameru nebo soubor s obrázkovou příponou/typem
-          const isImage = isCamera || (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|webp|gif|heic)$/i.test(fileName);
-          const mimeType = file.type || (isImage ? 'image/jpeg' : 'application/octet-stream');
-
           attachedFiles.push({
-            fileName: fileName,
-            mimeType: mimeType,
+            fileName: file.name,
+            mimeType: file.type || 'application/octet-stream',
             base64: base64,
-            previewUrl: isImage ? dataUrl : null
+            previewUrl: isImg ? reader.result : null
           });
 
           renderThumbnails();
-          setStatus('Příloha přidána', 'ready');
         };
-
-        reader.onerror = function() {
-          setStatus('Chyba čtení souboru', 'error');
-        };
-
         reader.readAsDataURL(file);
       });
     }
-
-    cameraInput.addEventListener('change', function(e) {
-      handleFileSelection(e.target.files, true);
-      this.value = '';
-    });
-
-    photosInput.addEventListener('change', function(e) {
-      handleFileSelection(e.target.files, false);
-      this.value = '';
-    });
-
-    filesInput.addEventListener('change', function(e) {
-      handleFileSelection(e.target.files, false);
-      this.value = '';
-    });
 
     function renderThumbnails() {
       thumbRow.innerHTML = '';
