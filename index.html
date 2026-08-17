@@ -950,9 +950,12 @@
 const JPEG_QUALITY = 0.72;    // 0.7–0.8 je sladký bod kvalita/velikost
 
 function compressImage(file) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
+
+    reader.onerror = () => reject(new Error('Chyba čtení souboru'));
+    img.onerror = () => reject(new Error('Chyba dekódování obrázku'));
 
     reader.onload = (e) => {
       img.onload = () => {
@@ -975,7 +978,9 @@ function compressImage(file) {
         ctx.drawImage(img, 0, 0, width, height);
 
         canvas.toBlob((blob) => {
+          if (!blob) { reject(new Error('toBlob selhal')); return; }
           const compressedReader = new FileReader();
+          compressedReader.onerror = () => reject(new Error('Chyba čtení komprimovaného blobu'));
           compressedReader.onloadend = () => {
             resolve({
               base64: compressedReader.result.split(',')[1],
@@ -995,7 +1000,7 @@ function compressImage(file) {
 function handleFiles(filesList) {
   if (!filesList || filesList.length === 0) return;
 
-  Array.from(filesList).forEach(async (file) => {
+  Array.from(filesList).forEach((file) => {
     if (attachedFiles.length >= 5) {
       setStatus('Max 5 příloh', 'error');
       return;
@@ -1004,17 +1009,27 @@ function handleFiles(filesList) {
     const isImg = file.type.startsWith('image/');
 
     if (isImg) {
-      const compressed = await compressImage(file);
-      attachedFiles.push({
-        fileName: file.name.replace(/\.[^.]+$/, '.jpg'),
-        mimeType: compressed.mimeType,
-        base64: compressed.base64,
-        previewUrl: compressed.previewUrl
-      });
-      renderThumbnails();
+      // Necháme WebView "vydechnout" po návratu z foťáku, než spustíme těžký výpočet
+      setTimeout(() => {
+        compressImage(file)
+          .then((compressed) => {
+            attachedFiles.push({
+              fileName: file.name.replace(/\.[^.]+$/, '.jpg'),
+              mimeType: compressed.mimeType,
+              base64: compressed.base64,
+              previewUrl: compressed.previewUrl
+            });
+            renderThumbnails();
+            setStatus('Foto připojeno', 'ready');
+          })
+          .catch((err) => {
+            console.error('Komprese selhala:', err);
+            setStatus('Chyba zpracování fotky', 'error');
+          });
+      }, 100);
     } else {
-      // Ne-obrázkové soubory (PDF, dokumenty) beze změny
       const reader = new FileReader();
+      reader.onerror = () => setStatus('Chyba čtení souboru', 'error');
       reader.onloadend = () => {
         const base64 = reader.result.split(',')[1];
         attachedFiles.push({
