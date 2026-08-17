@@ -511,7 +511,6 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- Tečkované pozadí s vertikální maskou -->
     <div class="bg-dots-masked"></div>
 
     <header class="top-bar">
@@ -633,6 +632,7 @@
     </div>
   </div>
 
+  <!-- Skryté inputy -->
   <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment">
   <input type="file" id="photosInput" class="hidden-input" accept="image/*" multiple>
   <input type="file" id="filesInput" class="hidden-input" accept="*/*" multiple>
@@ -937,39 +937,124 @@
     plusBtn.addEventListener('click', openSheet);
     sheetBackdrop.addEventListener('click', closeSheet);
 
-    cameraBtn.addEventListener('click', () => { closeSheet(); cameraInput.click(); });
-    photosBtn.addEventListener('click', () => { closeSheet(); photosInput.click(); });
-    filesBtn.addEventListener('click', () => { closeSheet(); filesInput.click(); });
+    cameraBtn.addEventListener('click', () => { 
+      closeSheet(); 
+      setTimeout(() => cameraInput.click(), 100); 
+    });
+    photosBtn.addEventListener('click', () => { 
+      closeSheet(); 
+      setTimeout(() => photosInput.click(), 100); 
+    });
+    filesBtn.addEventListener('click', () => { 
+      closeSheet(); 
+      setTimeout(() => filesInput.click(), 100); 
+    });
 
-    cameraInput.addEventListener('change', () => handleFiles(cameraInput.files));
-    photosInput.addEventListener('change', () => handleFiles(photosInput.files));
-    filesInput.addEventListener('change', () => handleFiles(filesInput.files));
+    cameraInput.addEventListener('change', () => handleFiles(cameraInput.files, true));
+    photosInput.addEventListener('change', () => handleFiles(photosInput.files, false));
+    filesInput.addEventListener('change', () => handleFiles(filesInput.files, false));
 
-    function handleFiles(filesList) {
-      if (!filesList || filesList.length === 0) return;
-
-      Array.from(filesList).forEach(file => {
-        if (attachedFiles.length >= 5) {
-          setStatus('Max 5 příloh', 'error');
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result.split(',')[1];
-          const isImg = file.type.startsWith('image/');
-          
-          attachedFiles.push({
-            fileName: file.name,
-            mimeType: file.type || 'application/octet-stream',
-            base64: base64,
-            previewUrl: isImg ? reader.result : null
+    // Automatická optimalizace a komprese obrázků přes Canvas
+    async function compressImageIfNeeded(file) {
+      const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|heic)$/i.test(file.name);
+      
+      if (!isImage || file.type === 'image/svg+xml') {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({
+            base64: reader.result.split(',')[1],
+            previewUrl: null,
+            mimeType: file.type || 'application/octet-stream'
           });
+          reader.readAsDataURL(file);
+        });
+      }
 
-          renderThumbnails();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const maxDim = 1600;
+            let w = img.width;
+            let h = img.height;
+
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+
+            const mimeType = 'image/jpeg';
+            const dataUrl = canvas.toDataURL(mimeType, 0.85);
+            const base64 = dataUrl.split(',')[1];
+
+            resolve({
+              base64: base64,
+              previewUrl: dataUrl,
+              mimeType: mimeType
+            });
+          };
+          img.onerror = () => {
+            const rawBase64 = e.target.result.split(',')[1];
+            resolve({
+              base64: rawBase64,
+              previewUrl: e.target.result,
+              mimeType: file.type || 'image/jpeg'
+            });
+          };
+          img.src = e.target.result;
         };
         reader.readAsDataURL(file);
       });
+    }
+
+    async function handleFiles(filesList, isFromCamera = false) {
+      if (!filesList || filesList.length === 0) return;
+
+      setStatus('Zpracovávám foto...', 'busy');
+
+      for (let i = 0; i < filesList.length; i++) {
+        if (attachedFiles.length >= 5) {
+          setStatus('Max 5 příloh', 'error');
+          break;
+        }
+
+        const file = filesList[i];
+        let originalName = file.name;
+        if (!originalName || originalName === 'image.jpg' || isFromCamera) {
+          originalName = `foto_${new Date().getTime()}.jpg`;
+        }
+
+        try {
+          const result = await compressImageIfNeeded(file);
+          attachedFiles.push({
+            fileName: originalName,
+            mimeType: result.mimeType,
+            base64: result.base64,
+            previewUrl: result.previewUrl
+          });
+        } catch (err) {
+          console.error("Chyba při čtení souboru:", err);
+        }
+      }
+
+      renderThumbnails();
+      setStatus('Připraveno', 'ready');
+
+      cameraInput.value = '';
+      photosInput.value = '';
+      filesInput.value = '';
     }
 
     function renderThumbnails() {
