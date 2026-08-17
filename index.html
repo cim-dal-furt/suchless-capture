@@ -946,32 +946,89 @@
     photosInput.addEventListener('change', () => handleFiles(photosInput.files));
     filesInput.addEventListener('change', () => handleFiles(filesInput.files));
 
-    function handleFiles(filesList) {
-      if (!filesList || filesList.length === 0) return;
+    const MAX_DIMENSION = 1600;   // max šířka/výška v px – uprav dle potřeby
+const JPEG_QUALITY = 0.72;    // 0.7–0.8 je sladký bod kvalita/velikost
 
-      Array.from(filesList).forEach(file => {
-        if (attachedFiles.length >= 5) {
-          setStatus('Max 5 příloh', 'error');
-          return;
+function compressImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.onload = () => {
+        let { width, height } = img;
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          if (width > height) {
+            height = Math.round(height * (MAX_DIMENSION / width));
+            width = MAX_DIMENSION;
+          } else {
+            width = Math.round(width * (MAX_DIMENSION / height));
+            height = MAX_DIMENSION;
+          }
         }
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result.split(',')[1];
-          const isImg = file.type.startsWith('image/');
-          
-          attachedFiles.push({
-            fileName: file.name,
-            mimeType: file.type || 'application/octet-stream',
-            base64: base64,
-            previewUrl: isImg ? reader.result : null
-          });
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
 
-          renderThumbnails();
-        };
-        reader.readAsDataURL(file);
-      });
+        canvas.toBlob((blob) => {
+          const compressedReader = new FileReader();
+          compressedReader.onloadend = () => {
+            resolve({
+              base64: compressedReader.result.split(',')[1],
+              previewUrl: compressedReader.result,
+              mimeType: 'image/jpeg'
+            });
+          };
+          compressedReader.readAsDataURL(blob);
+        }, 'image/jpeg', JPEG_QUALITY);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleFiles(filesList) {
+  if (!filesList || filesList.length === 0) return;
+
+  Array.from(filesList).forEach(async (file) => {
+    if (attachedFiles.length >= 5) {
+      setStatus('Max 5 příloh', 'error');
+      return;
     }
+
+    const isImg = file.type.startsWith('image/');
+
+    if (isImg) {
+      const compressed = await compressImage(file);
+      attachedFiles.push({
+        fileName: file.name.replace(/\.[^.]+$/, '.jpg'),
+        mimeType: compressed.mimeType,
+        base64: compressed.base64,
+        previewUrl: compressed.previewUrl
+      });
+      renderThumbnails();
+    } else {
+      // Ne-obrázkové soubory (PDF, dokumenty) beze změny
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result.split(',')[1];
+        attachedFiles.push({
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          base64: base64,
+          previewUrl: null
+        });
+        renderThumbnails();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
 
     function renderThumbnails() {
       thumbRow.innerHTML = '';
